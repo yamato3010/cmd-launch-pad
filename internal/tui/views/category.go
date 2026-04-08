@@ -8,7 +8,6 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/yourname/cmd-launch-pad/internal/models"
-	"github.com/yourname/cmd-launch-pad/internal/tui/components"
 	"github.com/yourname/cmd-launch-pad/internal/tui/styles"
 )
 
@@ -316,13 +315,13 @@ func (m CategoryViewModel) ModalView() string {
 
 func (m CategoryViewModel) viewList() string {
 	var sb strings.Builder
-	sb.WriteString(styles.AppTitle.Render("⌨  cmd-launch-pad - カテゴリ管理"))
+	sb.WriteString(styles.AppTitle.Render("🗂  カテゴリ管理"))
 	sb.WriteString("\n\n")
 
 	// インラインエラー表示
 	if m.errMsg != "" {
 		sb.WriteString(styles.ErrorStyle.Render("⚠  " + m.errMsg))
-		sb.WriteString("\n")
+		sb.WriteString("\n\n")
 	}
 
 	if len(m.categories) == 0 {
@@ -331,50 +330,35 @@ func (m CategoryViewModel) viewList() string {
 	} else {
 		// ヘッダー行
 		sb.WriteString(styles.InputLabel.Copy().Width(10).Render("ID"))
-		sb.WriteString(styles.InputLabel.Copy().Width(16).Render("名前"))
+		sb.WriteString(styles.InputLabel.Copy().Width(14).Render("名前"))
 		sb.WriteString(styles.InputLabel.Copy().Width(8).Render("アイコン"))
 		sb.WriteString(styles.InputLabel.Copy().Width(12).Render("カラー"))
-		sb.WriteString(styles.InputLabel.Render("コマンド数"))
+		sb.WriteString(styles.InputLabel.Render("Cmd"))
 		sb.WriteString("\n")
-		sb.WriteString(strings.Repeat("─", 60))
+		sb.WriteString(strings.Repeat("─", 52))
 		sb.WriteString("\n")
 
 		for i, cat := range m.categories {
 			count := m.cmdCounts[cat.ID]
-			line := fmt.Sprintf("%-10s %-14s %-7s %-11s %d件",
+			line := fmt.Sprintf("%-10s %-12s %-7s %-11s %d",
 				cat.ID, cat.Name, cat.Icon, cat.Color, count)
 			if i == m.cursor {
 				sb.WriteString(styles.CardFocused.Copy().
-					Width(60).Height(1).
+					Width(52).Height(1).
 					Render(line))
 			} else {
 				sb.WriteString(styles.CardNormal.Copy().
-					Width(60).Height(1).
+					Width(52).Height(1).
 					Render(line))
 			}
 			sb.WriteString("\n")
 		}
 	}
 
-	// ステータスバーを最下部に
-	bindings := []components.KeyBinding{
-		{Key: "↑↓/jk", Desc: "移動"},
-		{Key: "n", Desc: "新規追加"},
-		{Key: "e", Desc: "編集"},
-		{Key: "d", Desc: "削除"},
-		{Key: "q/Esc", Desc: "戻る"},
-	}
-	statusBar := components.RenderStatusBar(bindings, m.width)
+	sb.WriteString("\n")
+	sb.WriteString(styles.TabInactive.Render("↑↓/jk: 移動  n: 追加  e: 編集  d: 削除  q/Esc: 閉じる"))
 
-	content := sb.String()
-	if m.height > 0 {
-		lines := strings.Count(content, "\n") + 1
-		padding := m.height - lines - 1
-		if padding > 0 {
-			content += strings.Repeat("\n", padding)
-		}
-	}
-	return content + "\n" + statusBar
+	return sb.String()
 }
 
 func (m CategoryViewModel) viewForm() string {
