@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/yourname/cmd-launch-pad/internal/config"
-	"github.com/yourname/cmd-launch-pad/internal/models"
+	"github.com/yamato3010/cmd-launch-pad/internal/config"
+	"github.com/yamato3010/cmd-launch-pad/internal/models"
 	"gopkg.in/yaml.v3"
 )
 

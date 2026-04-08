@@ -7,8 +7,8 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/yourname/cmd-launch-pad/internal/models"
-	"github.com/yourname/cmd-launch-pad/internal/tui/styles"
+	"github.com/yamato3010/cmd-launch-pad/internal/models"
+	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
 
 // CategoryAction はカテゴリ管理画面のアクション種別
@@ -52,12 +52,12 @@ type CategoryViewModel struct {
 	categories []models.Category
 	cmdCounts  map[string]int // カテゴリIDごとのコマンド数
 	cursor     int
-	isEdit     bool // フォームが編集モードか
+	isEdit     bool   // フォームが編集モードか
 	errMsg     string // インライン表示エラー
 
 	// フォーム入力
-	inputs    []textinput.Model
-	focusIdx  int
+	inputs   []textinput.Model
+	focusIdx int
 
 	// 削除確認
 	deleteTarget  *models.Category
@@ -71,7 +71,7 @@ type CategoryViewModel struct {
 // NewCategoryViewModel は新しいCategoryViewModelを生成する
 func NewCategoryViewModel(categories []models.Category, cmdCounts map[string]int) CategoryViewModel {
 	return CategoryViewModel{
-		mode:      CategoryModeList,
+		mode:       CategoryModeList,
 		categories: categories,
 		cmdCounts:  cmdCounts,
 	}

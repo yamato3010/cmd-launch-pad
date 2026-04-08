@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/yourname/cmd-launch-pad/internal/models"
+	"github.com/yamato3010/cmd-launch-pad/internal/models"
 )
 
 // RenderGrid はコマンド一覧をグリッド形式で描画する

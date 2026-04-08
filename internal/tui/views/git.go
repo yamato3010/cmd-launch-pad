@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/yourname/cmd-launch-pad/internal/tui/styles"
+	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
 
 // GitAction はGit操作の種別

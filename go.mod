@@ -1,4 +1,4 @@
-module github.com/yourname/cmd-launch-pad
+module github.com/yamato3010/cmd-launch-pad
 
 go 1.24.2
 

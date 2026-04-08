@@ -6,9 +6,9 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/yourname/cmd-launch-pad/internal/models"
-	"github.com/yourname/cmd-launch-pad/internal/tui/components"
-	"github.com/yourname/cmd-launch-pad/internal/tui/styles"
+	"github.com/yamato3010/cmd-launch-pad/internal/models"
+	"github.com/yamato3010/cmd-launch-pad/internal/tui/components"
+	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
 
 // LauncherMsg はランチャーからのメッセージ

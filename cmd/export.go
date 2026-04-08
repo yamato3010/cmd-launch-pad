@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/yourname/cmd-launch-pad/internal/repository"
+	"github.com/yamato3010/cmd-launch-pad/internal/repository"
 	"gopkg.in/yaml.v3"
 )
 

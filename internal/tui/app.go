@@ -6,12 +6,12 @@ import (
 	"os/exec"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/yourname/cmd-launch-pad/internal/config"
-	gitpkg "github.com/yourname/cmd-launch-pad/internal/git"
-	"github.com/yourname/cmd-launch-pad/internal/models"
-	"github.com/yourname/cmd-launch-pad/internal/repository"
-	"github.com/yourname/cmd-launch-pad/internal/tui/components"
-	"github.com/yourname/cmd-launch-pad/internal/tui/views"
+	"github.com/yamato3010/cmd-launch-pad/internal/config"
+	gitpkg "github.com/yamato3010/cmd-launch-pad/internal/git"
+	"github.com/yamato3010/cmd-launch-pad/internal/models"
+	"github.com/yamato3010/cmd-launch-pad/internal/repository"
+	"github.com/yamato3010/cmd-launch-pad/internal/tui/components"
+	"github.com/yamato3010/cmd-launch-pad/internal/tui/views"
 )
 
 // ViewState は現在表示中の画面状態
@@ -53,12 +53,12 @@ type App struct {
 	gitMgr     *gitpkg.GitManager // nil の場合はGit未初期化
 
 	// サブビュー
-	launcher  views.LauncherModel
-	detail    views.DetailModel
-	search    views.SearchModel
-	gitView   views.GitViewModel
-	help      views.HelpModel
-	catView   views.CategoryViewModel
+	launcher views.LauncherModel
+	detail   views.DetailModel
+	search   views.SearchModel
+	gitView  views.GitViewModel
+	help     views.HelpModel
+	catView  views.CategoryViewModel
 
 	width  int
 	height int

@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/yourname/cmd-launch-pad/internal/models"
-	"github.com/yourname/cmd-launch-pad/internal/repository"
+	"github.com/yamato3010/cmd-launch-pad/internal/models"
+	"github.com/yamato3010/cmd-launch-pad/internal/repository"
 )
 
 var addCmd = &cobra.Command{

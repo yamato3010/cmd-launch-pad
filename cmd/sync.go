@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/yourname/cmd-launch-pad/internal/config"
-	gitpkg "github.com/yourname/cmd-launch-pad/internal/git"
+	"github.com/yamato3010/cmd-launch-pad/internal/config"
+	gitpkg "github.com/yamato3010/cmd-launch-pad/internal/git"
 )
 
 var syncCmd = &cobra.Command{

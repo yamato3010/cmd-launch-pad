@@ -3,7 +3,7 @@ package components
 import (
 	"strings"
 
-	"github.com/yourname/cmd-launch-pad/internal/tui/styles"
+	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
 
 // KeyBinding はキーとその説明のペア

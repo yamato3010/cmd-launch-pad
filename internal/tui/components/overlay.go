@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/yourname/cmd-launch-pad/internal/tui/styles"
+	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
 
 // PlaceOverlay は背景文字列 bg の中央にモーダルコンテンツ modal をオーバーレイして返す。

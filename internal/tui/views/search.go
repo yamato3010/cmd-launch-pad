@@ -7,9 +7,9 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/yourname/cmd-launch-pad/internal/models"
-	"github.com/yourname/cmd-launch-pad/internal/tui/components"
-	"github.com/yourname/cmd-launch-pad/internal/tui/styles"
+	"github.com/yamato3010/cmd-launch-pad/internal/models"
+	"github.com/yamato3010/cmd-launch-pad/internal/tui/components"
+	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
 
 // SearchDoneMsg は検索画面の完了メッセージ
@@ -21,8 +21,8 @@ type SearchDoneMsg struct {
 // SearchModel は検索画面のモデル
 type SearchModel struct {
 	input      textinput.Model
-	commands   []models.Command  // 全コマンド
-	filtered   []models.Command  // フィルタ後
+	commands   []models.Command // 全コマンド
+	filtered   []models.Command // フィルタ後
 	categories []models.Category
 	cursor     int
 	width      int

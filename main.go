@@ -1,6 +1,6 @@
 package main
 
-import "github.com/yourname/cmd-launch-pad/cmd"
+import "github.com/yamato3010/cmd-launch-pad/cmd"
 
 func main() {
 	cmd.Execute()

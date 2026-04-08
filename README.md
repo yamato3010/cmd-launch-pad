@@ -1,20 +1,19 @@
 # cmd-launch-pad (clp)
 
 ターミナルユーザー向けのTUIコマンドランチャー。  
-`nvim`、`lazygit`、`lazydocker` などのコマンドをGUIの「Launchpad」のように視覚的に管理・起動できます。
+`nvim`、`lazygit`、`lazydocker` などのコマンドを視覚的に管理・起動できます。
 
-## スクリーンショット
-
+## 画面イメージ
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  ⌨  cmd-launch-pad                                              │
 ├─────────────────────────────────────────────────────────────────┤
-│  📁 全て  ✏️ エディタ  🌿 Git  🐳 Docker  ⚡ カスタム            │
+│  📁 全て  ✏️ エディタ  🌿 Git  🐳 Docker  ⚡ カスタム           │
 ├─────────────────────────────────────────────────────────────────┤
-│  ╭──────────╮  ╭──────────╮  ╭──────────╮  ╭──────────╮        │
-│  │   🖊️     │  │   🌿     │  │   🐳     │  │   ➕     │        │
-│  │  Neovim  │  │ lazygit  │  │lazydocker│  │ 新規追加  │        │
-│  ╰──────────╯  ╰──────────╯  ╰──────────╯  ╰──────────╯        │
+│  ╭──────────╮  ╭──────────╮  ╭──────────╮  ╭──────────╮         │
+│  │   🖊️     │  │   🌿     │  │   🐳     │  │   ➕     │         │
+│  │  Neovim  │  │ lazygit  │  │lazydocker│  │ 新規追加 │         │
+│  ╰──────────╯  ╰──────────╯  ╰──────────╯  ╰──────────╯         │
 ├─────────────────────────────────────────────────────────────────┤
 │  ↑↓←→: 移動  Enter: 実行  n: 新規  e: 編集  d: 削除  g: Git     │
 └─────────────────────────────────────────────────────────────────┘
@@ -25,13 +24,13 @@
 ### Go install
 
 ```bash
-go install github.com/yourname/cmd-launch-pad@latest
+go install github.com/yamato3010/cmd-launch-pad@latest
 ```
 
 ### ソースからビルド
 
 ```bash
-git clone https://github.com/yourname/cmd-launch-pad.git
+git clone https://github.com/yamato3010/cmd-launch-pad.git
 cd cmd-launch-pad
 go build -o clp .
 sudo mv clp /usr/local/bin/
@@ -111,10 +110,6 @@ clp export --output my-commands.yaml
 - **Git操作**: [go-git](https://github.com/go-git/go-git)
 - **設定ファイル**: YAML
 - **CLIフレームワーク**: [Cobra](https://github.com/spf13/cobra)
-
-## 開発フェーズ
-
-詳細は [docs/PROGRESS.md](docs/PROGRESS.md) を参照してください。
 
 ## ライセンス
 
