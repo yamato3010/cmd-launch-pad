@@ -298,6 +298,11 @@ func makeCatInputs(cat *models.Category) []textinput.Model {
 
 // View はカテゴリ管理画面を描画する
 func (m CategoryViewModel) View() string {
+	return m.ModalView()
+}
+
+// ModalView はモーダル表示用コンテンツを返す
+func (m CategoryViewModel) ModalView() string {
 	switch m.mode {
 	case CategoryModeList:
 		return m.viewList()

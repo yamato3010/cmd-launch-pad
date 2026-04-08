@@ -10,6 +10,7 @@ import (
 	gitpkg "github.com/yourname/cmd-launch-pad/internal/git"
 	"github.com/yourname/cmd-launch-pad/internal/models"
 	"github.com/yourname/cmd-launch-pad/internal/repository"
+	"github.com/yourname/cmd-launch-pad/internal/tui/components"
 	"github.com/yourname/cmd-launch-pad/internal/tui/views"
 )
 
@@ -315,24 +316,36 @@ func (a App) updateHelp(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // View は現在のビューを描画する
+// ランチャー以外の画面はランチャーを背景にモーダルとして重ねて表示する
 func (a App) View() string {
-	return a.currentView()
-}
+	launcherBg := a.launcher.View()
 
-func (a App) currentView() string {
 	switch a.state {
 	case ViewLauncher:
-		return a.launcher.View()
+		return launcherBg
+	default:
+		modal := a.modalContent()
+		if modal == "" {
+			return launcherBg
+		}
+		boxed := components.ModalBox.Render(modal)
+		return components.PlaceOverlay(launcherBg, boxed, a.width, a.height)
+	}
+}
+
+// modalContent はモーダルとして表示するコンテンツを返す（ボーダーなし）
+func (a App) modalContent() string {
+	switch a.state {
 	case ViewDetail:
-		return a.detail.View()
+		return a.detail.ModalView()
 	case ViewSearch:
-		return a.search.View()
+		return a.search.ModalView()
 	case ViewGit:
-		return a.gitView.View()
+		return a.gitView.ModalView()
 	case ViewHelp:
-		return a.help.View()
+		return a.help.ModalView()
 	case ViewCategory:
-		return a.catView.View()
+		return a.catView.ModalView()
 	}
 	return ""
 }

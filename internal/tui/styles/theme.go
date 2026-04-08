@@ -1,6 +1,18 @@
 package styles
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"regexp"
+
+	"github.com/charmbracelet/lipgloss"
+)
+
+// ansiEscapeRe は ANSI エスケープシーケンスにマッチする正規表現
+var ansiEscapeRe = regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
+
+// StripANSI は ANSI エスケープシーケンスを除去した文字列を返す
+func StripANSI(s string) string {
+	return ansiEscapeRe.ReplaceAllString(s, "")
+}
 
 // カラーパレット (Tokyo Night 風)
 var (

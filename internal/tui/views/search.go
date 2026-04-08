@@ -113,9 +113,14 @@ func (m SearchModel) Update(msg tea.Msg) (SearchModel, tea.Cmd) {
 
 // View は検索画面を描画する
 func (m SearchModel) View() string {
+	return m.ModalView()
+}
+
+// ModalView はモーダル表示用コンテンツを返す
+func (m SearchModel) ModalView() string {
 	var sb strings.Builder
 
-	sb.WriteString(styles.AppTitle.Render("⌨  cmd-launch-pad - 検索"))
+	sb.WriteString(styles.AppTitle.Render("🔍  検索"))
 	sb.WriteString("\n\n")
 
 	sb.WriteString(m.input.View())
@@ -127,18 +132,12 @@ func (m SearchModel) View() string {
 		sb.WriteString(fmt.Sprintf("%s\n\n", styles.TabInactive.Render(
 			fmt.Sprintf("%d 件ヒット", len(m.filtered)),
 		)))
-		// 結果をグリッド表示
-		grid := components.RenderGrid(m.filtered, m.cursor, 4, false)
+		grid := components.RenderGrid(m.filtered, m.cursor, 3, false)
 		sb.WriteString(grid)
 	}
 
 	sb.WriteString("\n")
-	bindings := []components.KeyBinding{
-		{Key: "↑↓", Desc: "移動"},
-		{Key: "Enter", Desc: "実行"},
-		{Key: "Esc", Desc: "閉じる"},
-	}
-	sb.WriteString(components.RenderStatusBar(bindings, m.width))
+	sb.WriteString(styles.TabInactive.Render("↑↓/jk: 移動  Enter: 実行  Esc: 閉じる"))
 
 	return sb.String()
 }

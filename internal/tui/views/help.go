@@ -41,9 +41,14 @@ func (m HelpModel) Update(msg tea.Msg) (HelpModel, tea.Cmd) {
 
 // View はヘルプ画面を描画する
 func (m HelpModel) View() string {
+	return m.ModalView()
+}
+
+// ModalView はモーダル表示用コンテンツを返す
+func (m HelpModel) ModalView() string {
 	var sb strings.Builder
 
-	sb.WriteString(styles.AppTitle.Render("⌨  cmd-launch-pad - ヘルプ"))
+	sb.WriteString(styles.AppTitle.Render("❓  キーバインド一覧"))
 	sb.WriteString("\n\n")
 
 	type helpEntry struct {
@@ -52,16 +57,14 @@ func (m HelpModel) View() string {
 	}
 
 	entries := []helpEntry{
-		{"↑ / k", "上に移動"},
-		{"↓ / j", "下に移動"},
-		{"← / h", "左に移動"},
-		{"→ / l", "右に移動"},
+		{"↑↓←→ / hjkl", "カーソル移動"},
 		{"Enter", "コマンド実行"},
 		{"n", "新規コマンド登録"},
 		{"e", "選択中のコマンド編集"},
 		{"d", "選択中のコマンド削除"},
 		{"Tab", "カテゴリタブ切り替え"},
 		{"/", "検索モード"},
+		{"c", "カテゴリ管理"},
 		{"g", "Git操作画面"},
 		{"?", "ヘルプ表示/非表示"},
 		{"q / Ctrl+C", "アプリ終了"},
@@ -77,9 +80,9 @@ func (m HelpModel) View() string {
 	}
 
 	sb.WriteString("\n")
-	sb.WriteString(styles.TabInactive.Render("q / esc / ? でランチャーに戻る"))
+	sb.WriteString(styles.TabInactive.Render("q / Esc / ? で閉じる"))
 
-	return styles.DialogBox.Render(sb.String())
+	return sb.String()
 }
 
 // BackMsg はメイン画面に戻るメッセージ

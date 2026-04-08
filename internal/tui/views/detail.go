@@ -191,25 +191,29 @@ func (m *DetailModel) save() tea.Cmd {
 	}
 }
 
-// View は詳細・編集画面を描画する
+// View は詳細・編集画面を描画する（フルスクリーン用 - 後方互換）
 func (m DetailModel) View() string {
+	return m.ModalView()
+}
+
+// ModalView はモーダル表示用コンテンツを返す
+func (m DetailModel) ModalView() string {
 	var sb strings.Builder
 
 	title := "新規コマンド登録"
 	if m.mode == DetailModeEdit {
 		title = "コマンド編集"
 	}
-	sb.WriteString(styles.AppTitle.Render("⌨  cmd-launch-pad - " + title))
+	sb.WriteString(styles.AppTitle.Render("✚  " + title))
 	sb.WriteString("\n\n")
 
 	// カテゴリ一覧のヒントを表示
 	if len(m.categories) > 0 {
-		sb.WriteString(styles.TabInactive.Render("利用可能なカテゴリID: "))
 		catIDs := make([]string, 0, len(m.categories))
 		for _, cat := range m.categories {
-			catIDs = append(catIDs, fmt.Sprintf("%s(%s)", cat.ID, cat.Icon))
+			catIDs = append(catIDs, fmt.Sprintf("%s%s", cat.Icon, cat.ID))
 		}
-		sb.WriteString(styles.TabInactive.Render(strings.Join(catIDs, ", ")))
+		sb.WriteString(styles.TabInactive.Render("カテゴリ: " + strings.Join(catIDs, "  ")))
 		sb.WriteString("\n\n")
 	}
 
@@ -223,19 +227,13 @@ func (m DetailModel) View() string {
 	sb.WriteString("\n")
 
 	// 保存ボタン
-	saveBtn := "[ 保存 (Ctrl+S) ]"
 	if m.focusIdx == fieldCount {
-		saveBtn = styles.CardFocused.Copy().
-			Width(20).Height(1).
-			Render("[ 保存 (Ctrl+S) ]")
+		sb.WriteString(styles.CardFocused.Copy().Width(22).Height(1).Render("[ 保存 (Ctrl+S) ]"))
 	} else {
-		saveBtn = styles.CardNormal.Copy().
-			Width(20).Height(1).
-			Render("[ 保存 (Ctrl+S) ]")
+		sb.WriteString(styles.CardNormal.Copy().Width(22).Height(1).Render("[ 保存 (Ctrl+S) ]"))
 	}
-	sb.WriteString(saveBtn)
 	sb.WriteString("\n\n")
-	sb.WriteString(styles.TabInactive.Render("Tab/↓: 次のフィールド  Shift+Tab/↑: 前のフィールド  Ctrl+S: 保存  Esc: キャンセル"))
+	sb.WriteString(styles.TabInactive.Render("Tab: 次へ  Shift+Tab: 前へ  Ctrl+S: 保存  Esc: 閉じる"))
 
 	return sb.String()
 }

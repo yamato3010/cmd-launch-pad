@@ -7,7 +7,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/yourname/cmd-launch-pad/internal/tui/components"
 	"github.com/yourname/cmd-launch-pad/internal/tui/styles"
 )
 
@@ -140,20 +139,25 @@ func (m *GitViewModel) handleSelect() tea.Cmd {
 
 // View はGit操作画面を描画する
 func (m GitViewModel) View() string {
+	return m.ModalView()
+}
+
+// ModalView はモーダル表示用コンテンツを返す
+func (m GitViewModel) ModalView() string {
 	var sb strings.Builder
 
-	sb.WriteString(styles.AppTitle.Render("⌨  cmd-launch-pad - Git操作"))
+	sb.WriteString(styles.AppTitle.Render("🌿  Git操作"))
 	sb.WriteString("\n\n")
 
 	// メニュー
 	for i, item := range gitMenuItems {
 		if i == m.cursor {
 			sb.WriteString(styles.CardFocused.Copy().
-				Width(30).Height(1).
+				Width(32).Height(1).
 				Render(fmt.Sprintf(" %s ", item.label)))
 		} else {
 			sb.WriteString(styles.CardNormal.Copy().
-				Width(30).Height(1).
+				Width(32).Height(1).
 				Render(fmt.Sprintf(" %s ", item.label)))
 		}
 		sb.WriteString("\n")
@@ -173,16 +177,11 @@ func (m GitViewModel) View() string {
 
 	// ステータステキスト
 	if m.statusText != "" {
-		sb.WriteString(styles.DialogBox.Render(m.statusText))
+		sb.WriteString(styles.SuccessStyle.Render(m.statusText))
 		sb.WriteString("\n\n")
 	}
 
-	bindings := []components.KeyBinding{
-		{Key: "↑↓/jk", Desc: "移動"},
-		{Key: "Enter", Desc: "実行"},
-		{Key: "q/Esc", Desc: "戻る"},
-	}
-	sb.WriteString(components.RenderStatusBar(bindings, m.width))
+	sb.WriteString(styles.TabInactive.Render("↑↓/jk: 移動  Enter: 実行  q/Esc: 閉じる"))
 
 	return sb.String()
 }
