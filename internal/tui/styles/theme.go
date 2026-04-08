@@ -27,9 +27,7 @@ var AppTitle = lipgloss.NewStyle().
 var TabActive = lipgloss.NewStyle().
 	Bold(true).
 	Foreground(ColorAccent).
-	BorderBottom(true).
-	BorderStyle(lipgloss.NormalBorder()).
-	BorderForeground(ColorAccent).
+	Underline(true).
 	Padding(0, 1)
 
 // TabInactive は非アクティブなタブのスタイル

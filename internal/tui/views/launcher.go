@@ -221,24 +221,7 @@ func (m *LauncherModel) nextTab() {
 
 // View はランチャー画面を描画する
 func (m LauncherModel) View() string {
-	var sb strings.Builder
-
-	// ヘッダー
-	header := styles.AppTitle.Render("⌨  cmd-launch-pad")
-	sb.WriteString(header)
-	sb.WriteString("\n")
-
-	// カテゴリタブ
-	tabs := m.renderTabs()
-	sb.WriteString(tabs)
-	sb.WriteString("\n\n")
-
-	// グリッド
-	grid := components.RenderGrid(m.filtered, m.cursor, m.cols, true)
-	sb.WriteString(grid)
-	sb.WriteString("\n")
-
-	// ステータスバー
+	// ステータスバー（最下部固定）
 	bindings := []components.KeyBinding{
 		{Key: "↑↓←→/hjkl", Desc: "移動"},
 		{Key: "Enter", Desc: "実行"},
@@ -251,9 +234,32 @@ func (m LauncherModel) View() string {
 		{Key: "?", Desc: "ヘルプ"},
 		{Key: "q", Desc: "終了"},
 	}
-	sb.WriteString(components.RenderStatusBar(bindings, m.width))
+	statusBar := components.RenderStatusBar(bindings, m.width)
 
-	return sb.String()
+	// ヘッダー
+	header := styles.AppTitle.Render("⌨  cmd-launch-pad")
+
+	// カテゴリタブ
+	tabs := m.renderTabs()
+
+	// グリッド
+	grid := components.RenderGrid(m.filtered, m.cursor, m.cols, true)
+
+	// メインコンテンツ（ヘッダー + タブ + グリッド）
+	content := header + "\n" + tabs + "\n\n" + grid
+
+	// ステータスバーを画面最下部に配置するため、
+	// コンテンツとステータスバーの間にパディングを挿入する
+	if m.height > 0 {
+		contentLines := strings.Count(content, "\n") + 1
+		statusBarLines := 1
+		padding := m.height - contentLines - statusBarLines
+		if padding > 0 {
+			content += strings.Repeat("\n", padding)
+		}
+	}
+
+	return content + "\n" + statusBar
 }
 
 // renderTabs はカテゴリタブを描画する
