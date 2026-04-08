@@ -21,46 +21,49 @@ type LauncherMsg struct {
 type LauncherAction int
 
 const (
-	LauncherActionExec   LauncherAction = iota // コマンド実行
-	LauncherActionEdit                         // 編集
-	LauncherActionDelete                       // 削除
-	LauncherActionNew                          // 新規作成
-	LauncherActionSearch                       // 検索
-	LauncherActionGit                          // Git操作
-	LauncherActionHelp                         // ヘルプ
+	LauncherActionExec     LauncherAction = iota // コマンド実行
+	LauncherActionEdit                           // 編集
+	LauncherActionDelete                         // 削除
+	LauncherActionNew                            // 新規作成
+	LauncherActionSearch                         // 検索
+	LauncherActionGit                            // Git操作
+	LauncherActionHelp                           // ヘルプ
+	LauncherActionCategory                       // カテゴリ管理
 )
 
 // KeyMap はランチャー画面のキーバインド
 type KeyMap struct {
-	Up     key.Binding
-	Down   key.Binding
-	Left   key.Binding
-	Right  key.Binding
-	Enter  key.Binding
-	New    key.Binding
-	Edit   key.Binding
-	Delete key.Binding
-	Tab    key.Binding
-	Search key.Binding
-	Git    key.Binding
-	Help   key.Binding
-	Quit   key.Binding
+	Up       key.Binding
+	Down     key.Binding
+	Left     key.Binding
+	Right    key.Binding
+	Enter    key.Binding
+	New      key.Binding
+	Edit     key.Binding
+	Delete   key.Binding
+	Tab      key.Binding
+	Search   key.Binding
+	Git      key.Binding
+	Help     key.Binding
+	Quit     key.Binding
+	Category key.Binding
 }
 
 var DefaultKeyMap = KeyMap{
-	Up:     key.NewBinding(key.WithKeys("up", "k")),
-	Down:   key.NewBinding(key.WithKeys("down", "j")),
-	Left:   key.NewBinding(key.WithKeys("left", "h")),
-	Right:  key.NewBinding(key.WithKeys("right", "l")),
-	Enter:  key.NewBinding(key.WithKeys("enter")),
-	New:    key.NewBinding(key.WithKeys("n")),
-	Edit:   key.NewBinding(key.WithKeys("e")),
-	Delete: key.NewBinding(key.WithKeys("d")),
-	Tab:    key.NewBinding(key.WithKeys("tab")),
-	Search: key.NewBinding(key.WithKeys("/")),
-	Git:    key.NewBinding(key.WithKeys("g")),
-	Help:   key.NewBinding(key.WithKeys("?")),
-	Quit:   key.NewBinding(key.WithKeys("q", "ctrl+c")),
+	Up:       key.NewBinding(key.WithKeys("up", "k")),
+	Down:     key.NewBinding(key.WithKeys("down", "j")),
+	Left:     key.NewBinding(key.WithKeys("left", "h")),
+	Right:    key.NewBinding(key.WithKeys("right", "l")),
+	Enter:    key.NewBinding(key.WithKeys("enter")),
+	New:      key.NewBinding(key.WithKeys("n")),
+	Edit:     key.NewBinding(key.WithKeys("e")),
+	Delete:   key.NewBinding(key.WithKeys("d")),
+	Tab:      key.NewBinding(key.WithKeys("tab")),
+	Search:   key.NewBinding(key.WithKeys("/")),
+	Git:      key.NewBinding(key.WithKeys("g")),
+	Help:     key.NewBinding(key.WithKeys("?")),
+	Quit:     key.NewBinding(key.WithKeys("q", "ctrl+c")),
+	Category: key.NewBinding(key.WithKeys("c")),
 }
 
 // LauncherModel はメインランチャー画面のモデル
@@ -101,6 +104,23 @@ func (m *LauncherModel) SetCommands(commands []models.Command) {
 	if m.cursor < 0 {
 		m.cursor = 0
 	}
+}
+
+// SetCategories はカテゴリ一覧を更新する
+func (m *LauncherModel) SetCategories(categories []models.Category) {
+	m.categories = categories
+	// アクティブタブのカテゴリが削除された場合は「全て」に戻す
+	found := m.activeTabID == ""
+	for _, cat := range categories {
+		if cat.ID == m.activeTabID {
+			found = true
+			break
+		}
+	}
+	if !found {
+		m.activeTabID = ""
+	}
+	m.applyFilter()
 }
 
 // applyFilter はアクティブタブに基づいてコマンドをフィルタリングする
@@ -189,6 +209,10 @@ func (m LauncherModel) Update(msg tea.Msg) (LauncherModel, tea.Cmd) {
 			return m, func() tea.Msg {
 				return LauncherMsg{Action: LauncherActionHelp}
 			}
+		case key.Matches(msg, m.keyMap.Category):
+			return m, func() tea.Msg {
+				return LauncherMsg{Action: LauncherActionCategory}
+			}
 		}
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -230,6 +254,7 @@ func (m LauncherModel) View() string {
 		{Key: "d", Desc: "削除"},
 		{Key: "Tab", Desc: "タブ切替"},
 		{Key: "/", Desc: "検索"},
+		{Key: "c", Desc: "カテゴリ"},
 		{Key: "g", Desc: "Git"},
 		{Key: "?", Desc: "ヘルプ"},
 		{Key: "q", Desc: "終了"},

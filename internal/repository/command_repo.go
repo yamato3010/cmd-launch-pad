@@ -209,3 +209,99 @@ func (r *CommandRepository) InitDefaults() error {
 	}
 	return nil
 }
+
+// AddCategory は新しいカテゴリを追加する
+func (r *CommandRepository) AddCategory(cat *models.Category) error {
+	cf, err := r.load()
+	if err != nil {
+		return err
+	}
+	// ID重複チェック
+	for _, c := range cf.Categories {
+		if c.ID == cat.ID {
+			return fmt.Errorf("カテゴリID '%s' は既に存在します", cat.ID)
+		}
+	}
+	if cat.ID == "" {
+		return fmt.Errorf("カテゴリIDは必須です")
+	}
+	cf.Categories = append(cf.Categories, *cat)
+	return r.save(cf)
+}
+
+// UpdateCategory は既存のカテゴリを更新する
+func (r *CommandRepository) UpdateCategory(cat *models.Category) error {
+	cf, err := r.load()
+	if err != nil {
+		return err
+	}
+	for i, c := range cf.Categories {
+		if c.ID == cat.ID {
+			cf.Categories[i] = *cat
+			return r.save(cf)
+		}
+	}
+	return fmt.Errorf("カテゴリが見つかりません: %s", cat.ID)
+}
+
+// DeleteCategory はIDでカテゴリを削除する。
+// withCommands が true の場合、そのカテゴリに属するコマンドも削除する。
+// false の場合はカテゴリのみ削除し、所属コマンドの category_id を空にする。
+func (r *CommandRepository) DeleteCategory(id string, withCommands bool) error {
+	cf, err := r.load()
+	if err != nil {
+		return err
+	}
+
+	// カテゴリ削除
+	newCats := make([]models.Category, 0, len(cf.Categories))
+	found := false
+	for _, c := range cf.Categories {
+		if c.ID == id {
+			found = true
+			continue
+		}
+		newCats = append(newCats, c)
+	}
+	if !found {
+		return fmt.Errorf("カテゴリが見つかりません: %s", id)
+	}
+	cf.Categories = newCats
+
+	// コマンドの処理
+	if withCommands {
+		// そのカテゴリのコマンドも削除
+		newCmds := make([]models.Command, 0, len(cf.Commands))
+		for _, cmd := range cf.Commands {
+			if cmd.CategoryID == id {
+				continue
+			}
+			newCmds = append(newCmds, cmd)
+		}
+		cf.Commands = newCmds
+	} else {
+		// カテゴリIDのみ空にする（コマンドは残す）
+		for i, cmd := range cf.Commands {
+			if cmd.CategoryID == id {
+				cf.Commands[i].CategoryID = ""
+			}
+		}
+	}
+
+	return r.save(cf)
+}
+
+// CountCommandsByCategory はカテゴリIDに属するコマンド数を返す
+func (r *CommandRepository) CountCommandsByCategory(categoryID string) (int, error) {
+	cf, err := r.load()
+	if err != nil {
+		return 0, err
+	}
+	count := 0
+	for _, cmd := range cf.Commands {
+		if cmd.CategoryID == categoryID {
+			count++
+		}
+	}
+	return count, nil
+}

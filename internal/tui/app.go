@@ -22,6 +22,7 @@ const (
 	ViewSearch
 	ViewGit
 	ViewHelp
+	ViewCategory
 )
 
 // execCommandMsg はコマンド実行後のメッセージ
@@ -31,6 +32,12 @@ type execCommandMsg struct {
 
 // gitResultMsg はGit操作完了後のメッセージ
 type gitResultMsg struct {
+	text string
+	err  error
+}
+
+// categoryResultMsg はカテゴリ操作完了後のメッセージ
+type categoryResultMsg struct {
 	text string
 	err  error
 }
@@ -45,11 +52,12 @@ type App struct {
 	gitMgr     *gitpkg.GitManager // nil の場合はGit未初期化
 
 	// サブビュー
-	launcher views.LauncherModel
-	detail   views.DetailModel
-	search   views.SearchModel
-	gitView  views.GitViewModel
-	help     views.HelpModel
+	launcher  views.LauncherModel
+	detail    views.DetailModel
+	search    views.SearchModel
+	gitView   views.GitViewModel
+	help      views.HelpModel
+	catView   views.CategoryViewModel
 
 	width  int
 	height int
@@ -125,6 +133,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.search, _ = a.search.Update(msg)
 		a.gitView, _ = a.gitView.Update(msg)
 		a.help, _ = a.help.Update(msg)
+		a.catView, _ = a.catView.Update(msg)
 		return a, nil
 
 	case tea.KeyMsg:
@@ -151,6 +160,26 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		a.gitView.SetStatus(text)
 		return a, nil
+
+	case categoryResultMsg:
+		// ここでリロード（Updateのバリューレシーバ内なのでa自体を更新できる）
+		if msg.err == nil {
+			a.reloadCommands()
+		}
+		// 最新データでcatViewを再構築
+		cmdCounts := make(map[string]int)
+		for _, cmd := range a.commands {
+			cmdCounts[cmd.CategoryID]++
+		}
+		a.catView = views.NewCategoryViewModel(a.categories, cmdCounts)
+		if a.width > 0 {
+			a.catView, _ = a.catView.Update(tea.WindowSizeMsg{Width: a.width, Height: a.height})
+		}
+		// エラーがあればcatView内にインライン表示
+		if msg.err != nil {
+			a.catView.SetError(fmt.Sprintf("カテゴリ操作エラー: %v", msg.err))
+		}
+		return a, nil
 	}
 
 	// 現在のビューにメッセージをルーティング
@@ -165,6 +194,8 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return a.updateGit(msg)
 	case ViewHelp:
 		return a.updateHelp(msg)
+	case ViewCategory:
+		return a.updateCategory(msg)
 	}
 	return a, nil
 }
@@ -210,6 +241,8 @@ func (a App) updateLauncher(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case views.LauncherActionHelp:
 			a.state = ViewHelp
 			return a, a.help.Init()
+		case views.LauncherActionCategory:
+			return a, a.openCategoryView()
 		}
 	}
 	return a, cmd
@@ -283,11 +316,6 @@ func (a App) updateHelp(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View は現在のビューを描画する
 func (a App) View() string {
-	if a.err != "" {
-		// エラーが表示されている場合は下部にエラーを追加
-		content := a.currentView()
-		return content + "\n\n" + fmt.Sprintf("⚠️  %s", a.err)
-	}
 	return a.currentView()
 }
 
@@ -303,8 +331,75 @@ func (a App) currentView() string {
 		return a.gitView.View()
 	case ViewHelp:
 		return a.help.View()
+	case ViewCategory:
+		return a.catView.View()
 	}
 	return ""
+}
+
+// openCategoryView はカテゴリ管理画面を開く
+func (a *App) openCategoryView() tea.Cmd {
+	// コマンド数マップを作成
+	cmdCounts := make(map[string]int)
+	for _, cmd := range a.commands {
+		cmdCounts[cmd.CategoryID]++
+	}
+	a.catView = views.NewCategoryViewModel(a.categories, cmdCounts)
+	a.state = ViewCategory
+	return a.catView.Init()
+}
+
+// updateCategory はカテゴリ管理画面のメッセージを処理する
+func (a App) updateCategory(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	a.catView, cmd = a.catView.Update(msg)
+
+	if _, ok := msg.(views.BackMsg); ok {
+		a.state = ViewLauncher
+		return a, nil
+	}
+
+	if cMsg, ok := msg.(views.CategoryDoneMsg); ok {
+		return a, a.handleCategoryAction(cMsg)
+	}
+	return a, cmd
+}
+
+// handleCategoryAction はカテゴリ操作を実行する
+// NOTE: goroutine内でa.reloadCommands()を呼ばないこと。
+// リロードはcategoryResultMsgを受け取ったUpdate内で行う。
+func (a *App) handleCategoryAction(msg views.CategoryDoneMsg) tea.Cmd {
+	switch msg.Action {
+	case views.CategoryActionAdd:
+		cat := msg.Category
+		repo := a.repo
+		return func() tea.Msg {
+			if err := repo.AddCategory(&cat); err != nil {
+				return categoryResultMsg{err: err}
+			}
+			return categoryResultMsg{text: "✅ カテゴリを追加しました"}
+		}
+	case views.CategoryActionEdit:
+		cat := msg.Category
+		repo := a.repo
+		return func() tea.Msg {
+			if err := repo.UpdateCategory(&cat); err != nil {
+				return categoryResultMsg{err: err}
+			}
+			return categoryResultMsg{text: "✅ カテゴリを更新しました"}
+		}
+	case views.CategoryActionDelete:
+		cat := msg.Category
+		withCmds := msg.WithCommands
+		repo := a.repo
+		return func() tea.Msg {
+			if err := repo.DeleteCategory(cat.ID, withCmds); err != nil {
+				return categoryResultMsg{err: err}
+			}
+			return categoryResultMsg{text: "✅ カテゴリを削除しました"}
+		}
+	}
+	return nil
 }
 
 // reloadCommands はリポジトリからコマンド・カテゴリを再読み込みする
@@ -322,6 +417,7 @@ func (a *App) reloadCommands() {
 	a.commands = cmds
 	a.categories = cats
 	a.launcher.SetCommands(cmds)
+	a.launcher.SetCategories(cats)
 }
 
 // execCommand はコマンドをExecProcessで実行する (TUIを一時停止)
