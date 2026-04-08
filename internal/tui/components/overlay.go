@@ -128,7 +128,6 @@ func stripANSI(s string) string {
 var ModalBox = lipgloss.NewStyle().
 	Border(lipgloss.RoundedBorder()).
 	BorderForeground(styles.ColorAccent).
-	Background(styles.ColorBg).
 	Padding(1, 2)
 
 // ModalTitle はモーダルのタイトルスタイル

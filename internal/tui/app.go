@@ -329,7 +329,7 @@ func (a App) View() string {
 			return launcherBg
 		}
 		boxed := components.ModalBox.Render(modal)
-		return components.PlaceOverlay(launcherBg, boxed, a.width, a.height)
+		return components.PlaceOverlay(launcherBg, boxed, a.width, a.height-1)
 	}
 }
 
