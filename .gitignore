@@ -1,0 +1,21 @@
+# バイナリ
+clp
+*.exe
+*.out
+
+# Go ビルドキャッシュ
+/vendor/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# エディタ
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# テスト
+*.test
+*.prof
