@@ -270,21 +270,30 @@ func (m LauncherModel) View() string {
 	// グリッド
 	grid := components.RenderGrid(m.filtered, m.cursor, m.cols, true)
 
+	// 説明パネル（フォーカス中コマンドの名前・説明を表示）
+	var descName, descBody string
+	if m.cursor < len(m.filtered) {
+		descName = m.filtered[m.cursor].Name
+		descBody = m.filtered[m.cursor].Description
+	}
+	descPanel := components.RenderDescPanel(descName, descBody, m.width)
+
 	// メインコンテンツ（ヘッダー + タブ + グリッド）
 	content := header + "\n" + tabs + "\n\n" + grid
 
-	// ステータスバーを画面最下部に配置するため、
-	// コンテンツとステータスバーの間にパディングを挿入する
+	// ステータスバーと説明パネルを画面最下部に配置するため、
+	// コンテンツとの間にパディングを挿入する
 	if m.height > 0 {
 		contentLines := strings.Count(content, "\n") + 1
-		statusBarLines := 1
-		padding := m.height - contentLines - statusBarLines
+		// 説明パネル(1行) + その改行(1) + ステータスバー(1) = 3
+		bottomLines := strings.Count(descPanel, "\n") + 1 + 1 + 1
+		padding := m.height - contentLines - bottomLines
 		if padding > 0 {
 			content += strings.Repeat("\n", padding)
 		}
 	}
 
-	return content + "\n" + statusBar
+	return content + "\n" + descPanel + "\n" + statusBar
 }
 
 // renderTabs はカテゴリタブを描画する

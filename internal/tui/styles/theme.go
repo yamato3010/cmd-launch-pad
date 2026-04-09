@@ -123,3 +123,18 @@ var DialogBox = lipgloss.NewStyle().
 	Border(lipgloss.RoundedBorder()).
 	BorderForeground(ColorAccent).
 	Padding(1, 2)
+
+// DescPanel はコマンド説明パネルのスタイル
+var DescPanel = lipgloss.NewStyle().
+	Border(lipgloss.RoundedBorder()).
+	BorderForeground(ColorBorder).
+	Padding(0, 1)
+
+// DescPanelTitle はコマンド説明パネルのタイトルスタイル
+var DescPanelTitle = lipgloss.NewStyle().
+	Bold(true).
+	Foreground(ColorAccent)
+
+// DescPanelText はコマンド説明パネルの説明文スタイル
+var DescPanelText = lipgloss.NewStyle().
+	Foreground(ColorText)

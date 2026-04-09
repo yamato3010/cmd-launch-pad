@@ -16,9 +16,8 @@ func RenderCard(cmd models.Command, focused bool) string {
 	}
 
 	title := styles.CardTitle.Render(truncate(cmd.Name, 12))
-	desc := styles.CardDesc.Render(truncate(cmd.Description, 12))
 
-	content := fmt.Sprintf("%s\n%s\n%s", icon, title, desc)
+	content := fmt.Sprintf("%s\n%s", icon, title)
 
 	if focused {
 		return styles.CardFocused.Render(content)
