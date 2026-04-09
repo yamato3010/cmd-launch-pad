@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/yamato3010/cmd-launch-pad/internal/models"
 	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
@@ -416,15 +417,15 @@ func (m CategoryViewModel) viewConfirm() string {
 		// 選択肢
 		opt0 := fmt.Sprintf("コマンドも一緒に削除 (%d件)", m.cmdCountOfDel)
 		opt1 := "カテゴリのみ削除（コマンドは残す）"
+		var btn0, btn1 string
 		if m.deleteConfirm == 0 {
-			sb.WriteString(styles.CardFocused.Copy().Width(36).Height(1).Render("▶ " + opt0))
-			sb.WriteString("  ")
-			sb.WriteString(styles.CardNormal.Copy().Width(36).Height(1).Render("  " + opt1))
+			btn0 = styles.CardFocused.Copy().Width(30).Render("▶ " + opt0)
+			btn1 = styles.CardNormal.Copy().Width(30).Render("  " + opt1)
 		} else {
-			sb.WriteString(styles.CardNormal.Copy().Width(36).Height(1).Render("  " + opt0))
-			sb.WriteString("  ")
-			sb.WriteString(styles.CardFocused.Copy().Width(36).Height(1).Render("▶ " + opt1))
+			btn0 = styles.CardNormal.Copy().Width(30).Render("  " + opt0)
+			btn1 = styles.CardFocused.Copy().Width(30).Render("▶ " + opt1)
 		}
+		sb.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, btn0, "  ", btn1))
 		sb.WriteString("\n\n")
 	} else {
 		sb.WriteString("このカテゴリにはコマンドが属していません。\n\n")
