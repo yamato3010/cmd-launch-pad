@@ -70,6 +70,28 @@ clp sync pull
 clp sync status
 ```
 
+### ターミナルからコマンドを素早く呼び出す
+
+登録済みコマンドが一覧表示され、選択するとターミナルに書き込まれます。  
+Enter を押すだけで実行できます。
+
+**シェル統合のセットアップ（初回のみ）**
+
+```bash
+# zsh
+clp list --shell-init >> ~/.zshrc && source ~/.zshrc
+
+# bash
+clp list --shell-init-bash >> ~/.bashrc && source ~/.bashrc
+```
+
+セットアップ後は `_clp_pick` でセレクターを呼び出せます。  
+キーバインドを設定するとより便利です（`~/.zshrc` に追記）:
+
+```zsh
+bindkey -s '^[p' '_clp_pick\n'  # Alt+P でコマンド選択
+```
+
 ### エクスポート
 
 ```bash
