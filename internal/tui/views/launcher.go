@@ -217,6 +217,16 @@ func (m LauncherModel) Update(msg tea.Msg) (LauncherModel, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		// 画面幅に応じて列数を動的に計算する
+		// カード1枚あたりの幅: Width(14) + Padding(0,1)*2 + Border*2 = 18
+		const cardWidth = 18
+		if m.width > 0 {
+			cols := m.width / cardWidth
+			if cols < 1 {
+				cols = 1
+			}
+			m.cols = cols
+		}
 	}
 	return m, nil
 }
