@@ -4,9 +4,13 @@
 `nvim`、`lazygit`、`lazydocker` などのコマンドを視覚的に管理・起動できます。
 
 <p>
-  <img src="docs/img/main.png" width="100%" />
+  <img src="docs/img/main.png" width="45%" />
+  <img src="docs/img/edit.png" width="45%" />
 </p>
-
+<p>
+  <img src="docs/img/category.png" width="45%" />
+  <img src="docs/img/git.png" width="45%" />
+</p>
 
 ## インストール
 
