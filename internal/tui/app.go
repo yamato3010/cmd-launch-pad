@@ -26,6 +26,7 @@ const (
 	ViewHelp
 	ViewCategory
 	ViewOutput
+	ViewConfirmDelete
 )
 
 // execCommandMsg はコマンド実行後のメッセージ
@@ -55,13 +56,14 @@ type App struct {
 	gitMgr     *gitpkg.GitManager // nil の場合はGit未初期化
 
 	// サブビュー
-	launcher   views.LauncherModel
-	detail     views.DetailModel
-	search     views.SearchModel
-	gitView    views.GitViewModel
-	help       views.HelpModel
-	catView    views.CategoryViewModel
-	outputView views.OutputViewModel
+	launcher      views.LauncherModel
+	detail        views.DetailModel
+	search        views.SearchModel
+	gitView       views.GitViewModel
+	help          views.HelpModel
+	catView       views.CategoryViewModel
+	outputView    views.OutputViewModel
+	confirmDelete views.ConfirmDeleteModel
 
 	width  int
 	height int
@@ -139,6 +141,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.help, _ = a.help.Update(msg)
 		a.catView, _ = a.catView.Update(msg)
 		a.outputView, _ = a.outputView.Update(msg)
+		a.confirmDelete, _ = a.confirmDelete.Update(msg)
 		return a, nil
 
 	case tea.KeyMsg:
@@ -214,6 +217,8 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return a.updateCategory(msg)
 	case ViewOutput:
 		return a.updateOutput(msg)
+	case ViewConfirmDelete:
+		return a.updateConfirmDelete(msg)
 	}
 	return a, nil
 }
@@ -244,12 +249,15 @@ func (a App) updateLauncher(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case views.LauncherActionDelete:
 			if lMsg.Command != nil {
-				if err := a.repo.DeleteCommand(lMsg.Command.ID); err != nil {
-					a.err = fmt.Sprintf("削除エラー: %v", err)
-				} else {
-					a.err = ""
-					a.reloadCommands()
+				// 確認モーダルを表示する
+				a.confirmDelete = views.NewConfirmDeleteModel(lMsg.Command)
+				a.state = ViewConfirmDelete
+				if a.width > 0 {
+					a.confirmDelete, _ = a.confirmDelete.Update(
+						tea.WindowSizeMsg{Width: a.width, Height: a.height},
+					)
 				}
+				return a, a.confirmDelete.Init()
 			}
 		case views.LauncherActionSearch:
 			a.search = views.NewSearchModel(a.commands, a.categories)
@@ -371,8 +379,30 @@ func (a App) modalContent() string {
 		return a.catView.ModalView()
 	case ViewOutput:
 		return a.outputView.ModalView()
+	case ViewConfirmDelete:
+		return a.confirmDelete.ModalView()
 	}
 	return ""
+}
+
+// updateConfirmDelete は削除確認モーダルのメッセージを処理する
+func (a App) updateConfirmDelete(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	a.confirmDelete, cmd = a.confirmDelete.Update(msg)
+
+	if cMsg, ok := msg.(views.ConfirmDeleteDoneMsg); ok {
+		a.state = ViewLauncher
+		if cMsg.Confirmed && cMsg.Command != nil {
+			if err := a.repo.DeleteCommand(cMsg.Command.ID); err != nil {
+				a.err = fmt.Sprintf("削除エラー: %v", err)
+			} else {
+				a.err = ""
+				a.reloadCommands()
+			}
+		}
+		return a, nil
+	}
+	return a, cmd
 }
 
 // updateOutput は出力ポップアップのメッセージを処理する
