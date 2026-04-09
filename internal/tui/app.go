@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/yamato3010/cmd-launch-pad/internal/config"
@@ -360,7 +361,10 @@ func (a App) View() string {
 			return launcherBg
 		}
 		boxed := components.ModalBox.Render(modal)
-		return components.PlaceOverlay(launcherBg, boxed, a.width, a.height-1)
+		// ステータスバーが折り返されると launcherBg の行数が height より多くなるため、
+		// 実際の行数を使ってオーバーレイの高さを計算する
+		bgHeight := strings.Count(launcherBg, "\n") + 1
+		return components.PlaceOverlay(launcherBg, boxed, a.width, bgHeight)
 	}
 }
 

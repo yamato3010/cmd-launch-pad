@@ -295,8 +295,9 @@ func (m LauncherModel) View() string {
 	// コンテンツとの間にパディングを挿入する
 	if m.height > 0 {
 		contentLines := strings.Count(content, "\n") + 1
-		// 説明パネル(1行) + その改行(1) + ステータスバー(1) = 3
-		bottomLines := strings.Count(descPanel, "\n") + 1 + 1 + 1
+		// ステータスバーの実際の行数を考慮する（改行されると2行以上になる）
+		statusBarLines := strings.Count(statusBar, "\n") + 1
+		bottomLines := strings.Count(descPanel, "\n") + 1 + 1 + statusBarLines
 		padding := m.height - contentLines - bottomLines
 		if padding > 0 {
 			content += strings.Repeat("\n", padding)
