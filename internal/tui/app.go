@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -24,6 +25,7 @@ const (
 	ViewGit
 	ViewHelp
 	ViewCategory
+	ViewOutput
 )
 
 // execCommandMsg はコマンド実行後のメッセージ
@@ -53,12 +55,13 @@ type App struct {
 	gitMgr     *gitpkg.GitManager // nil の場合はGit未初期化
 
 	// サブビュー
-	launcher views.LauncherModel
-	detail   views.DetailModel
-	search   views.SearchModel
-	gitView  views.GitViewModel
-	help     views.HelpModel
-	catView  views.CategoryViewModel
+	launcher   views.LauncherModel
+	detail     views.DetailModel
+	search     views.SearchModel
+	gitView    views.GitViewModel
+	help       views.HelpModel
+	catView    views.CategoryViewModel
+	outputView views.OutputViewModel
 
 	width  int
 	height int
@@ -135,6 +138,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.gitView, _ = a.gitView.Update(msg)
 		a.help, _ = a.help.Update(msg)
 		a.catView, _ = a.catView.Update(msg)
+		a.outputView, _ = a.outputView.Update(msg)
 		return a, nil
 
 	case tea.KeyMsg:
@@ -151,6 +155,17 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a.err = fmt.Sprintf("コマンド実行エラー: %v", msg.err)
 		} else {
 			a.err = ""
+		}
+		return a, nil
+
+	case views.OutputResultMsg:
+		// 出力キャプチャ完了 → ポップアップ表示
+		a.outputView = views.NewOutputViewModel(msg.CommandName, msg.Output, msg.Err)
+		a.state = ViewOutput
+		if a.width > 0 {
+			a.outputView, _ = a.outputView.Update(
+				tea.WindowSizeMsg{Width: a.width, Height: a.height},
+			)
 		}
 		return a, nil
 
@@ -197,6 +212,8 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return a.updateHelp(msg)
 	case ViewCategory:
 		return a.updateCategory(msg)
+	case ViewOutput:
+		return a.updateOutput(msg)
 	}
 	return a, nil
 }
@@ -210,6 +227,9 @@ func (a App) updateLauncher(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch lMsg.Action {
 		case views.LauncherActionExec:
 			if lMsg.Command != nil {
+				if lMsg.Command.CaptureOutput {
+					return a, a.execCommandCapture(lMsg.Command)
+				}
 				return a, a.execCommand(lMsg.Command)
 			}
 		case views.LauncherActionNew:
@@ -282,6 +302,9 @@ func (a App) updateSearch(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if sMsg, ok := msg.(views.SearchDoneMsg); ok {
 		if sMsg.Selected != nil {
 			a.state = ViewLauncher
+			if sMsg.Selected.CaptureOutput {
+				return a, a.execCommandCapture(sMsg.Selected)
+			}
 			return a, a.execCommand(sMsg.Selected)
 		}
 		a.state = ViewLauncher
@@ -346,8 +369,21 @@ func (a App) modalContent() string {
 		return a.help.ModalView()
 	case ViewCategory:
 		return a.catView.ModalView()
+	case ViewOutput:
+		return a.outputView.ModalView()
 	}
 	return ""
+}
+
+// updateOutput は出力ポップアップのメッセージを処理する
+func (a App) updateOutput(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	a.outputView, cmd = a.outputView.Update(msg)
+	if _, ok := msg.(views.BackMsg); ok {
+		a.state = ViewLauncher
+		return a, nil
+	}
+	return a, cmd
 }
 
 // openCategoryView はカテゴリ管理画面を開く
@@ -443,6 +479,26 @@ func (a *App) execCommand(cmd *models.Command) tea.Cmd {
 	return tea.ExecProcess(c, func(err error) tea.Msg {
 		return execCommandMsg{err: err}
 	})
+}
+
+// execCommandCapture はコマンドを実行して stdout/stderr をキャプチャする
+// TUI は一時停止せず、結果をポップアップで表示する
+func (a *App) execCommandCapture(cmd *models.Command) tea.Cmd {
+	name := cmd.Name
+	command := cmd.Command
+	args := append([]string{}, cmd.Args...)
+	return func() tea.Msg {
+		var outBuf bytes.Buffer
+		c := exec.Command(command, args...)
+		c.Stdout = &outBuf
+		c.Stderr = &outBuf
+		err := c.Run()
+		return views.OutputResultMsg{
+			CommandName: name,
+			Output:      outBuf.String(),
+			Err:         err,
+		}
+	}
 }
 
 // handleGitAction はGit操作を実行する

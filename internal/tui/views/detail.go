@@ -32,9 +32,10 @@ type DetailModel struct {
 	categories []models.Category
 
 	// 入力フィールド
-	inputs    []textinput.Model
-	focusIdx  int
-	inputKeys []string // フィールド名
+	inputs        []textinput.Model
+	focusIdx      int
+	inputKeys     []string // フィールド名
+	captureOutput bool     // 出力キャプチャ設定
 
 	width  int
 	height int
@@ -48,6 +49,8 @@ const (
 	fieldCategory = 4
 	fieldIcon     = 5
 	fieldCount    = 6
+	// fieldCount + 0: captureOutput トグル
+	// fieldCount + 1: 保存ボタン
 )
 
 // NewDetailModel は新規作成用のDetailModelを生成する
@@ -70,6 +73,7 @@ func newDetailModel(mode DetailMode, cmd *models.Command, categories []models.Ca
 		inputs[i] = ti
 	}
 
+	captureOutput := false
 	if cmd != nil {
 		inputs[fieldName].SetValue(cmd.Name)
 		inputs[fieldCommand].SetValue(cmd.Command)
@@ -77,17 +81,19 @@ func newDetailModel(mode DetailMode, cmd *models.Command, categories []models.Ca
 		inputs[fieldDesc].SetValue(cmd.Description)
 		inputs[fieldCategory].SetValue(cmd.CategoryID)
 		inputs[fieldIcon].SetValue(cmd.Icon)
+		captureOutput = cmd.CaptureOutput
 	}
 
 	inputs[fieldName].Focus()
 
 	return DetailModel{
-		mode:       mode,
-		original:   cmd,
-		categories: categories,
-		inputs:     inputs,
-		focusIdx:   0,
-		inputKeys:  []string{"名前", "コマンド", "引数", "説明", "カテゴリID", "アイコン"},
+		mode:          mode,
+		original:      cmd,
+		categories:    categories,
+		inputs:        inputs,
+		focusIdx:      0,
+		inputKeys:     []string{"名前", "コマンド", "引数", "説明", "カテゴリID", "アイコン"},
+		captureOutput: captureOutput,
 	}
 }
 
@@ -96,6 +102,11 @@ func (m DetailModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
+// focusTotal はフォーカス可能な項目の総数（入力フィールド + トグル + 保存ボタン）
+const focusTotal = fieldCount + 2 // +1: captureOutput, +1: save button
+const focusCaptureOutput = fieldCount
+const focusSaveButton = fieldCount + 1
+
 // Update はキー入力を処理する
 func (m DetailModel) Update(msg tea.Msg) (DetailModel, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -103,50 +114,61 @@ func (m DetailModel) Update(msg tea.Msg) (DetailModel, tea.Cmd) {
 		switch {
 		case key.Matches(msg, key.NewBinding(key.WithKeys("esc"))):
 			return m, func() tea.Msg { return DetailDoneMsg{Saved: false} }
-		case key.Matches(msg, key.NewBinding(key.WithKeys("enter"))):
-			if m.focusIdx == fieldCount-1 {
-				// 最後のフィールドでEnterなら保存
-				return m, m.save()
-			}
-			m.focusIdx++
-			return m, m.updateFocus()
+
+		case key.Matches(msg, key.NewBinding(key.WithKeys("ctrl+s"))):
+			return m, m.save()
+
 		case key.Matches(msg, key.NewBinding(key.WithKeys("tab", "down"))):
-			m.focusIdx = (m.focusIdx + 1) % (fieldCount + 1) // +1 for save button
-			if m.focusIdx == fieldCount {
-				// セーブボタンにフォーカス
+			m.focusIdx = (m.focusIdx + 1) % focusTotal
+			if m.focusIdx >= fieldCount {
 				for i := range m.inputs {
 					m.inputs[i].Blur()
 				}
 				return m, nil
 			}
 			return m, m.updateFocus()
+
 		case key.Matches(msg, key.NewBinding(key.WithKeys("shift+tab", "up"))):
 			m.focusIdx--
 			if m.focusIdx < 0 {
-				m.focusIdx = fieldCount
+				m.focusIdx = focusTotal - 1
 			}
-			if m.focusIdx == fieldCount {
+			if m.focusIdx >= fieldCount {
 				for i := range m.inputs {
 					m.inputs[i].Blur()
 				}
 				return m, nil
 			}
 			return m, m.updateFocus()
-		case key.Matches(msg, key.NewBinding(key.WithKeys("ctrl+s"))):
-			return m, m.save()
-		}
-		// セーブボタンフォーカス時にEnterで保存
-		if m.focusIdx == fieldCount {
-			if key.Matches(msg, key.NewBinding(key.WithKeys("enter"))) {
+
+		case key.Matches(msg, key.NewBinding(key.WithKeys("enter", " "))):
+			switch m.focusIdx {
+			case focusCaptureOutput:
+				// トグルを切り替え
+				m.captureOutput = !m.captureOutput
+				return m, nil
+			case focusSaveButton:
 				return m, m.save()
+			default:
+				if m.focusIdx == fieldCount-1 {
+					// 最後のフィールドでEnter → 次へ（トグルへ）
+					m.focusIdx = focusCaptureOutput
+					for i := range m.inputs {
+						m.inputs[i].Blur()
+					}
+					return m, nil
+				}
+				m.focusIdx++
+				return m, m.updateFocus()
 			}
 		}
+
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
 	}
 
-	// アクティブなinputにメッセージを渡す（inputsが未初期化の場合はスキップ）
+	// アクティブなinputにメッセージを渡す
 	if m.focusIdx < fieldCount && len(m.inputs) > m.focusIdx {
 		var cmd tea.Cmd
 		m.inputs[m.focusIdx], cmd = m.inputs[m.focusIdx].Update(msg)
@@ -171,11 +193,12 @@ func (m *DetailModel) updateFocus() tea.Cmd {
 // save は入力内容を保存してDetailDoneMsgを返す
 func (m *DetailModel) save() tea.Cmd {
 	cmd := models.Command{
-		Name:        m.inputs[fieldName].Value(),
-		Command:     m.inputs[fieldCommand].Value(),
-		Description: m.inputs[fieldDesc].Value(),
-		CategoryID:  m.inputs[fieldCategory].Value(),
-		Icon:        m.inputs[fieldIcon].Value(),
+		Name:          m.inputs[fieldName].Value(),
+		Command:       m.inputs[fieldCommand].Value(),
+		Description:   m.inputs[fieldDesc].Value(),
+		CategoryID:    m.inputs[fieldCategory].Value(),
+		Icon:          m.inputs[fieldIcon].Value(),
+		CaptureOutput: m.captureOutput,
 	}
 	argsStr := m.inputs[fieldArgs].Value()
 	if argsStr != "" {
@@ -191,7 +214,7 @@ func (m *DetailModel) save() tea.Cmd {
 	}
 }
 
-// View は詳細・編集画面を描画する（フルスクリーン用 - 後方互換）
+// View は詳細・編集画面を描画する
 func (m DetailModel) View() string {
 	return m.ModalView()
 }
@@ -226,8 +249,26 @@ func (m DetailModel) ModalView() string {
 
 	sb.WriteString("\n")
 
+	// 出力キャプチャ トグル
+	toggleLabel := styles.InputLabel.Render("出力キャプチャ:")
+	toggleVal := "[ ] オフ (通常実行)"
+	if m.captureOutput {
+		toggleVal = "[x] オン (結果ポップアップ表示)"
+	}
+	var toggleStr string
+	if m.focusIdx == focusCaptureOutput {
+		toggleStr = styles.TabActive.Render(toggleVal)
+	} else {
+		toggleStr = styles.TabInactive.Render(toggleVal)
+	}
+	sb.WriteString(fmt.Sprintf("%s  %s\n", toggleLabel, toggleStr))
+	if m.focusIdx == focusCaptureOutput {
+		sb.WriteString(styles.TabInactive.Render("         Space/Enter でオン/オフ切り替え"))
+	}
+	sb.WriteString("\n")
+
 	// 保存ボタン
-	if m.focusIdx == fieldCount {
+	if m.focusIdx == focusSaveButton {
 		sb.WriteString(styles.CardFocused.Copy().Width(22).Height(1).Render("[ 保存 (Ctrl+S) ]"))
 	} else {
 		sb.WriteString(styles.CardNormal.Copy().Width(22).Height(1).Render("[ 保存 (Ctrl+S) ]"))
