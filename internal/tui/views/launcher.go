@@ -13,8 +13,9 @@ import (
 
 // LauncherMsg はランチャーからのメッセージ
 type LauncherMsg struct {
-	Action  LauncherAction
-	Command *models.Command
+	Action     LauncherAction
+	Command    *models.Command
+	CategoryID string // 新規作成時のカテゴリID
 }
 
 // LauncherAction はランチャーのアクション種別
@@ -171,8 +172,9 @@ func (m LauncherModel) Update(msg tea.Msg) (LauncherModel, tea.Cmd) {
 		case key.Matches(msg, m.keyMap.Enter):
 			if m.cursor == len(m.filtered) {
 				// 追加カード
+				catID := m.activeTabID
 				return m, func() tea.Msg {
-					return LauncherMsg{Action: LauncherActionNew}
+					return LauncherMsg{Action: LauncherActionNew, CategoryID: catID}
 				}
 			}
 			cmd := m.filtered[m.cursor]
@@ -180,8 +182,9 @@ func (m LauncherModel) Update(msg tea.Msg) (LauncherModel, tea.Cmd) {
 				return LauncherMsg{Action: LauncherActionExec, Command: &cmd}
 			}
 		case key.Matches(msg, m.keyMap.New):
+			catID := m.activeTabID
 			return m, func() tea.Msg {
-				return LauncherMsg{Action: LauncherActionNew}
+				return LauncherMsg{Action: LauncherActionNew, CategoryID: catID}
 			}
 		case key.Matches(msg, m.keyMap.Edit):
 			if m.cursor < len(m.filtered) {

@@ -55,7 +55,16 @@ const (
 
 // NewDetailModel は新規作成用のDetailModelを生成する
 func NewDetailModel(categories []models.Category) DetailModel {
-	return newDetailModel(DetailModeNew, nil, categories)
+	return NewDetailModelWithCategory(categories, "")
+}
+
+// NewDetailModelWithCategory は新規作成用のDetailModelをカテゴリIDを事前入力して生成する
+func NewDetailModelWithCategory(categories []models.Category, categoryID string) DetailModel {
+	m := newDetailModel(DetailModeNew, nil, categories)
+	if categoryID != "" {
+		m.inputs[fieldCategory].SetValue(categoryID)
+	}
+	return m
 }
 
 // NewEditModel は編集用のDetailModelを生成する

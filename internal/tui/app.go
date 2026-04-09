@@ -239,7 +239,7 @@ func (a App) updateLauncher(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return a, a.execCommand(lMsg.Command)
 			}
 		case views.LauncherActionNew:
-			a.detail = views.NewDetailModel(a.categories)
+			a.detail = views.NewDetailModelWithCategory(a.categories, lMsg.CategoryID)
 			a.state = ViewDetail
 			return a, a.detail.Init()
 		case views.LauncherActionEdit:
