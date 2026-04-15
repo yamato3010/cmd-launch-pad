@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
+	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 	"github.com/yamato3010/cmd-launch-pad/internal/models"
 	"github.com/yamato3010/cmd-launch-pad/internal/repository"
 )
@@ -17,7 +18,7 @@ import (
 // ============================================================
 
 const shellInitZsh = `# cmd-launch-pad shell integration for zsh
-# 以下を ~/.zshrc に追加してください
+# Add the following to ~/.zshrc
 
 _clp_pick() {
   local selected
@@ -27,12 +28,12 @@ _clp_pick() {
   fi
 }
 
-# キーバインド (例: Alt+P でコマンド選択)
+# Key binding (e.g. Alt+P to pick a command)
 # bindkey -s '^[p' '_clp_pick\n'
 `
 
 const shellInitBash = `# cmd-launch-pad shell integration for bash
-# 以下を ~/.bashrc に追加してください
+# Add the following to ~/.bashrc
 
 _clp_pick() {
   local selected
@@ -43,7 +44,7 @@ _clp_pick() {
   fi
 }
 
-# キーバインド (例: Alt+P でコマンド選択)
+# Key binding (e.g. Alt+P to pick a command)
 # bind -x '"\ep": _clp_pick'
 `
 
@@ -136,9 +137,9 @@ func (m listModel) View() string {
 	var sb strings.Builder
 
 	sb.WriteString("\n")
-	sb.WriteString(listHeaderStyle.Render("  cmd-launch-pad — コマンド選択"))
+	sb.WriteString(listHeaderStyle.Render(i18n.T("list.header")))
 	sb.WriteString("\n")
-	sb.WriteString(listDimStyle.Render("  ↑↓ / jk: 移動   Enter: 選択   q: キャンセル"))
+	sb.WriteString(listDimStyle.Render(i18n.T("list.hint")))
 	sb.WriteString("\n\n")
 
 	for i, cmd := range m.commands {
@@ -167,7 +168,7 @@ func (m listModel) View() string {
 	}
 
 	sb.WriteString("\n")
-	sb.WriteString(listFooterStyle.Render("  選択するとコマンドがターミナルに書き込まれます"))
+	sb.WriteString(listFooterStyle.Render(i18n.T("list.footer")))
 	sb.WriteString("\n\n")
 
 	return sb.String()
@@ -179,22 +180,15 @@ func (m listModel) View() string {
 
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "コマンドをインタラクティブに選択してターミナルに書き込む",
-	Long: `登録済みコマンドを一覧表示し、選択したコマンドをターミナルに書き込みます。
-Enter を押すだけで実行できます。
-
-シェル統合のセットアップ:
-  clp list --shell-init >> ~/.zshrc   # zsh
-  clp list --shell-init-bash >> ~/.bashrc  # bash
-
-セットアップ後は _clp_pick コマンドで呼び出せます。`,
-	RunE: runList,
+	Short: i18n.T("list.short"),
+	Long:  i18n.T("list.long"),
+	RunE:  runList,
 }
 
 func init() {
 	rootCmd.AddCommand(listCmd)
-	listCmd.Flags().Bool("shell-init", false, "zsh用シェル統合コードを出力する")
-	listCmd.Flags().Bool("shell-init-bash", false, "bash用シェル統合コードを出力する")
+	listCmd.Flags().Bool("shell-init", false, i18n.T("list.flag.shell_init"))
+	listCmd.Flags().Bool("shell-init-bash", false, i18n.T("list.flag.shell_init_bash"))
 }
 
 func runList(cobraCmd *cobra.Command, args []string) error {
@@ -218,7 +212,7 @@ func runList(cobraCmd *cobra.Command, args []string) error {
 	}
 
 	if len(commands) == 0 {
-		fmt.Fprintln(os.Stderr, "コマンドが登録されていません。`clp` を起動して追加してください。")
+		fmt.Fprintln(os.Stderr, i18n.T("list.empty"))
 		return nil
 	}
 
@@ -230,7 +224,7 @@ func runList(cobraCmd *cobra.Command, args []string) error {
 	// /dev/tty を直接開くことで、$(clp list) でも UI が正常に表示される
 	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
 	if err != nil {
-		return fmt.Errorf("ターミナルを開けませんでした: %w", err)
+		return fmt.Errorf(i18n.T("list.err.tty"), err)
 	}
 	defer tty.Close()
 

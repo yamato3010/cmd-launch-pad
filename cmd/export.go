@@ -5,14 +5,15 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 	"github.com/yamato3010/cmd-launch-pad/internal/repository"
 	"gopkg.in/yaml.v3"
 )
 
 var exportCmd = &cobra.Command{
 	Use:   "export",
-	Short: "コマンド定義をYAML形式でエクスポート",
-	Long:  `登録済みコマンドをYAML形式で標準出力に出力します。`,
+	Short: i18n.T("export.short"),
+	Long:  i18n.T("export.long"),
 	Example: `  clp export > my-commands.yaml
   clp export --output my-commands.yaml`,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -39,14 +40,14 @@ var exportCmd = &cobra.Command{
 
 		out, err := yaml.Marshal(data)
 		if err != nil {
-			return fmt.Errorf("YAMLシリアライズに失敗しました: %w", err)
+			return fmt.Errorf(i18n.T("export.err.serialize"), err)
 		}
 
 		if output != "" {
 			if err := os.WriteFile(output, out, 0644); err != nil {
-				return fmt.Errorf("ファイル書き込みに失敗しました: %w", err)
+				return fmt.Errorf(i18n.T("export.err.write"), err)
 			}
-			fmt.Printf("✅ エクスポート完了: %s\n", output)
+			fmt.Printf(i18n.T("export.success")+"\n", output)
 		} else {
 			fmt.Print(string(out))
 		}
@@ -56,5 +57,5 @@ var exportCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(exportCmd)
-	exportCmd.Flags().StringP("output", "o", "", "出力ファイルパス (省略時は標準出力)")
+	exportCmd.Flags().StringP("output", "o", "", i18n.T("export.flag.output"))
 }

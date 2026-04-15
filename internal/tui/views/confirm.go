@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 	"github.com/yamato3010/cmd-launch-pad/internal/models"
 	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
@@ -19,10 +20,10 @@ type ConfirmDeleteDoneMsg struct {
 
 // ConfirmDeleteModel は削除確認モーダルのモデル
 type ConfirmDeleteModel struct {
-	command  *models.Command
-	cursor   int // 0: はい, 1: いいえ
-	width    int
-	height   int
+	command *models.Command
+	cursor  int // 0: はい, 1: いいえ
+	width   int
+	height  int
 }
 
 // NewConfirmDeleteModel は新しい削除確認モーダルを生成する
@@ -90,17 +91,17 @@ func (m ConfirmDeleteModel) ModalView() string {
 
 	var sb strings.Builder
 
-	sb.WriteString(styles.ErrorStyle.Render("🗑  コマンドの削除"))
+	sb.WriteString(styles.ErrorStyle.Render(i18n.T("confirm.title")))
 	sb.WriteString("\n\n")
 
-	sb.WriteString(fmt.Sprintf("以下のコマンドを削除してもよいですか？\n\n"))
-	sb.WriteString(fmt.Sprintf("  名前: %s\n", styles.AppTitle.Render(m.command.Name)))
-	sb.WriteString(fmt.Sprintf("  コマンド: %s\n", styles.TabInactive.Render(m.command.Command)))
+	sb.WriteString(i18n.T("confirm.question"))
+	sb.WriteString(fmt.Sprintf(i18n.T("confirm.name"), styles.AppTitle.Render(m.command.Name)))
+	sb.WriteString(fmt.Sprintf(i18n.T("confirm.command"), styles.TabInactive.Render(m.command.Command)))
 	if m.command.Description != "" {
-		sb.WriteString(fmt.Sprintf("  説明: %s\n", m.command.Description))
+		sb.WriteString(fmt.Sprintf(i18n.T("confirm.desc"), m.command.Description))
 	}
 	sb.WriteString("\n")
-	sb.WriteString(styles.ErrorStyle.Render("この操作は元に戻せません。"))
+	sb.WriteString(styles.ErrorStyle.Render(i18n.T("confirm.irreversible")))
 	sb.WriteString("\n\n")
 
 	// ボタン（lipgloss.JoinHorizontal で横並び）
@@ -115,15 +116,15 @@ func (m ConfirmDeleteModel) ModalView() string {
 
 	var yesBtn, noBtn string
 	if m.cursor == 0 {
-		yesBtn = focusedStyle.Render("▶ はい")
-		noBtn  = normalStyle.Render("  いいえ")
+		yesBtn = focusedStyle.Render(i18n.T("confirm.yes"))
+		noBtn = normalStyle.Render(i18n.T("confirm.no_inactive"))
 	} else {
-		yesBtn = normalStyle.Render("  はい")
-		noBtn  = focusedStyle.Render("▶ いいえ")
+		yesBtn = normalStyle.Render(i18n.T("confirm.yes_inactive"))
+		noBtn = focusedStyle.Render(i18n.T("confirm.no"))
 	}
 	sb.WriteString(lipgloss.JoinHorizontal(lipgloss.Center, yesBtn, "    ", noBtn))
 	sb.WriteString("\n\n")
-	sb.WriteString(styles.TabInactive.Render("←→/Tab: 選択切替  Enter: 実行  y: 削除  Esc/n: キャンセル"))
+	sb.WriteString(styles.TabInactive.Render(i18n.T("confirm.hint")))
 
 	return sb.String()
 }

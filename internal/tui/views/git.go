@@ -1,12 +1,12 @@
 package views
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
 
@@ -39,16 +39,19 @@ type GitViewModel struct {
 	height      int
 }
 
-var gitMenuItems = []struct {
-	label  string
-	action GitAction
-}{
-	{"📂 Gitリポジトリ初期化", GitActionInit},
-	{"📋 ステータス確認", GitActionStatus},
-	{"💾 コミット", GitActionCommit},
-	{"⬆️  プッシュ", GitActionPush},
-	{"⬇️  プル", GitActionPull},
-	{"🔗 リモートURL設定", GitActionRemote},
+// gitMenuItem はメニュー項目
+type gitMenuItem struct {
+	labelKey string
+	action   GitAction
+}
+
+var gitMenuItemDefs = []gitMenuItem{
+	{"git.menu.init", GitActionInit},
+	{"git.menu.status", GitActionStatus},
+	{"git.menu.commit", GitActionCommit},
+	{"git.menu.push", GitActionPush},
+	{"git.menu.pull", GitActionPull},
+	{"git.menu.remote", GitActionRemote},
 }
 
 // NewGitViewModel は新しいGitViewModelを生成する
@@ -101,7 +104,7 @@ func (m GitViewModel) Update(msg tea.Msg) (GitViewModel, tea.Cmd) {
 				m.cursor--
 			}
 		case key.Matches(msg, key.NewBinding(key.WithKeys("down", "j"))):
-			if m.cursor < len(gitMenuItems)-1 {
+			if m.cursor < len(gitMenuItemDefs)-1 {
 				m.cursor++
 			}
 		case key.Matches(msg, key.NewBinding(key.WithKeys("enter"))):
@@ -116,18 +119,18 @@ func (m GitViewModel) Update(msg tea.Msg) (GitViewModel, tea.Cmd) {
 
 // handleSelect は選択されたメニュー項目を処理する
 func (m *GitViewModel) handleSelect() tea.Cmd {
-	action := gitMenuItems[m.cursor].action
+	action := gitMenuItemDefs[m.cursor].action
 	switch action {
 	case GitActionCommit:
 		m.isInputMode = true
 		m.inputAction = GitActionCommit
-		m.input.Placeholder = "コミットメッセージを入力..."
+		m.input.Placeholder = i18n.T("git.commit.placeholder")
 		m.input.Focus()
 		return textinput.Blink
 	case GitActionRemote:
 		m.isInputMode = true
 		m.inputAction = GitActionRemote
-		m.input.Placeholder = "リモートURL (例: https://github.com/user/repo.git)"
+		m.input.Placeholder = i18n.T("git.remote.placeholder")
 		m.input.Focus()
 		return textinput.Blink
 	default:
@@ -146,19 +149,20 @@ func (m GitViewModel) View() string {
 func (m GitViewModel) ModalView() string {
 	var sb strings.Builder
 
-	sb.WriteString(styles.AppTitle.Render("🌿  Git操作"))
+	sb.WriteString(styles.AppTitle.Render(i18n.T("git.title")))
 	sb.WriteString("\n\n")
 
 	// メニュー
-	for i, item := range gitMenuItems {
+	for i, item := range gitMenuItemDefs {
+		label := i18n.T(item.labelKey)
 		if i == m.cursor {
 			sb.WriteString(styles.CardFocused.Copy().
 				Width(32).Height(1).
-				Render(fmt.Sprintf(" %s ", item.label)))
+				Render(" " + label + " "))
 		} else {
 			sb.WriteString(styles.CardNormal.Copy().
 				Width(32).Height(1).
-				Render(fmt.Sprintf(" %s ", item.label)))
+				Render(" " + label + " "))
 		}
 		sb.WriteString("\n")
 	}
@@ -167,11 +171,11 @@ func (m GitViewModel) ModalView() string {
 
 	// 入力モード
 	if m.isInputMode {
-		sb.WriteString(styles.InputLabel.Render("入力:"))
+		sb.WriteString(styles.InputLabel.Render(i18n.T("git.input.label")))
 		sb.WriteString("  ")
 		sb.WriteString(m.input.View())
 		sb.WriteString("\n")
-		sb.WriteString(styles.TabInactive.Render("Enter: 実行  Esc: キャンセル"))
+		sb.WriteString(styles.TabInactive.Render(i18n.T("git.input.hint")))
 		sb.WriteString("\n\n")
 	}
 
@@ -181,7 +185,7 @@ func (m GitViewModel) ModalView() string {
 		sb.WriteString("\n\n")
 	}
 
-	sb.WriteString(styles.TabInactive.Render("↑↓/jk: 移動  Enter: 実行  q/Esc: 閉じる"))
+	sb.WriteString(styles.TabInactive.Render(i18n.T("git.hint")))
 
 	return sb.String()
 }
@@ -189,10 +193,10 @@ func (m GitViewModel) ModalView() string {
 // FormatGitStatus はGitステータスを見やすくフォーマットする
 func FormatGitStatus(status string) string {
 	if strings.TrimSpace(status) == "" {
-		return "✅ 変更なし (クリーン)"
+		return i18n.T("git.status.clean")
 	}
 	var sb strings.Builder
-	sb.WriteString("📋 変更あり:\n")
+	sb.WriteString(i18n.T("git.status.changed"))
 	for _, line := range strings.Split(strings.TrimSpace(status), "\n") {
 		if line != "" {
 			sb.WriteString("  " + line + "\n")

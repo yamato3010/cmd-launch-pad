@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 	"github.com/yamato3010/cmd-launch-pad/internal/models"
 	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
@@ -74,7 +75,14 @@ func NewEditModel(cmd *models.Command, categories []models.Category) DetailModel
 
 func newDetailModel(mode DetailMode, cmd *models.Command, categories []models.Category) DetailModel {
 	inputs := make([]textinput.Model, fieldCount)
-	placeholders := []string{"コマンド名", "コマンド (例: nvim)", "引数 (スペース区切り)", "説明", "カテゴリID", "アイコン (例: 🖊️)"}
+	placeholders := []string{
+		i18n.T("detail.placeholder.name"),
+		i18n.T("detail.placeholder.command"),
+		i18n.T("detail.placeholder.args"),
+		i18n.T("detail.placeholder.desc"),
+		i18n.T("detail.placeholder.cat"),
+		i18n.T("detail.placeholder.icon"),
+	}
 	for i := range inputs {
 		ti := textinput.New()
 		ti.Placeholder = placeholders[i]
@@ -96,12 +104,19 @@ func newDetailModel(mode DetailMode, cmd *models.Command, categories []models.Ca
 	inputs[fieldName].Focus()
 
 	return DetailModel{
-		mode:          mode,
-		original:      cmd,
-		categories:    categories,
-		inputs:        inputs,
-		focusIdx:      0,
-		inputKeys:     []string{"名前", "コマンド", "引数", "説明", "カテゴリID", "アイコン"},
+		mode:     mode,
+		original: cmd,
+		categories: categories,
+		inputs:   inputs,
+		focusIdx: 0,
+		inputKeys: []string{
+			i18n.T("detail.field.name"),
+			i18n.T("detail.field.command"),
+			i18n.T("detail.field.args"),
+			i18n.T("detail.field.desc"),
+			i18n.T("detail.field.cat"),
+			i18n.T("detail.field.icon"),
+		},
 		captureOutput: captureOutput,
 	}
 }
@@ -232,9 +247,9 @@ func (m DetailModel) View() string {
 func (m DetailModel) ModalView() string {
 	var sb strings.Builder
 
-	title := "新規コマンド登録"
+	title := i18n.T("detail.title.new")
 	if m.mode == DetailModeEdit {
-		title = "コマンド編集"
+		title = i18n.T("detail.title.edit")
 	}
 	sb.WriteString(styles.AppTitle.Render("✚  " + title))
 	sb.WriteString("\n\n")
@@ -245,7 +260,7 @@ func (m DetailModel) ModalView() string {
 		for _, cat := range m.categories {
 			catIDs = append(catIDs, fmt.Sprintf("%s%s", cat.Icon, cat.ID))
 		}
-		sb.WriteString(styles.TabInactive.Render("カテゴリ: " + strings.Join(catIDs, "  ")))
+		sb.WriteString(styles.TabInactive.Render(i18n.T("detail.label.categories") + ": " + strings.Join(catIDs, "  ")))
 		sb.WriteString("\n\n")
 	}
 
@@ -259,10 +274,10 @@ func (m DetailModel) ModalView() string {
 	sb.WriteString("\n")
 
 	// 出力キャプチャ トグル
-	toggleLabel := styles.InputLabel.Render("出力キャプチャ:")
-	toggleVal := "[ ] オフ (通常実行)"
+	toggleLabel := styles.InputLabel.Render(i18n.T("detail.toggle.label"))
+	toggleVal := i18n.T("detail.toggle.off")
 	if m.captureOutput {
-		toggleVal = "[x] オン (結果ポップアップ表示)"
+		toggleVal = i18n.T("detail.toggle.on")
 	}
 	var toggleStr string
 	if m.focusIdx == focusCaptureOutput {
@@ -272,18 +287,18 @@ func (m DetailModel) ModalView() string {
 	}
 	sb.WriteString(fmt.Sprintf("%s  %s\n", toggleLabel, toggleStr))
 	if m.focusIdx == focusCaptureOutput {
-		sb.WriteString(styles.TabInactive.Render("         Space/Enter でオン/オフ切り替え"))
+		sb.WriteString(styles.TabInactive.Render(i18n.T("detail.toggle.hint")))
 	}
 	sb.WriteString("\n")
 
 	// 保存ボタン
 	if m.focusIdx == focusSaveButton {
-		sb.WriteString(styles.CardFocused.Copy().Width(22).Height(1).Render("[ 保存 (Ctrl+S) ]"))
+		sb.WriteString(styles.CardFocused.Copy().Width(22).Height(1).Render(i18n.T("detail.save_btn")))
 	} else {
-		sb.WriteString(styles.CardNormal.Copy().Width(22).Height(1).Render("[ 保存 (Ctrl+S) ]"))
+		sb.WriteString(styles.CardNormal.Copy().Width(22).Height(1).Render(i18n.T("detail.save_btn")))
 	}
 	sb.WriteString("\n\n")
-	sb.WriteString(styles.TabInactive.Render("Tab: 次へ  Shift+Tab: 前へ  Ctrl+S: 保存  Esc: 閉じる"))
+	sb.WriteString(styles.TabInactive.Render(i18n.T("detail.hint")))
 
 	return sb.String()
 }

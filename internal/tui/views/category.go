@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 	"github.com/yamato3010/cmd-launch-pad/internal/models"
 	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
@@ -274,10 +275,10 @@ func (m *CategoryViewModel) saveCategory() tea.Cmd {
 // makeCatInputs はカテゴリフォームのinputsを生成する
 func makeCatInputs(cat *models.Category) []textinput.Model {
 	placeholders := []string{
-		"カテゴリID (例: editor)",
-		"カテゴリ名 (例: エディタ)",
-		"アイコン (例: ✏️)",
-		"カラー (例: #7aa2f7)",
+		i18n.T("cat.form.placeholder.id"),
+		i18n.T("cat.form.placeholder.name"),
+		i18n.T("cat.form.placeholder.icon"),
+		i18n.T("cat.form.placeholder.color"),
 	}
 	inputs := make([]textinput.Model, catFieldCount)
 	for i := range inputs {
@@ -316,7 +317,7 @@ func (m CategoryViewModel) ModalView() string {
 
 func (m CategoryViewModel) viewList() string {
 	var sb strings.Builder
-	sb.WriteString(styles.AppTitle.Render("🗂  カテゴリ管理"))
+	sb.WriteString(styles.AppTitle.Render(i18n.T("cat.title.list")))
 	sb.WriteString("\n\n")
 
 	// インラインエラー表示
@@ -326,15 +327,15 @@ func (m CategoryViewModel) viewList() string {
 	}
 
 	if len(m.categories) == 0 {
-		sb.WriteString(styles.TabInactive.Render("カテゴリがありません。n で新規追加できます。"))
+		sb.WriteString(styles.TabInactive.Render(i18n.T("cat.empty")))
 		sb.WriteString("\n")
 	} else {
 		// ヘッダー行
-		sb.WriteString(styles.InputLabel.Copy().Width(10).Render("ID"))
-		sb.WriteString(styles.InputLabel.Copy().Width(14).Render("名前"))
-		sb.WriteString(styles.InputLabel.Copy().Width(8).Render("アイコン"))
-		sb.WriteString(styles.InputLabel.Copy().Width(12).Render("カラー"))
-		sb.WriteString(styles.InputLabel.Render("Cmd"))
+		sb.WriteString(styles.InputLabel.Copy().Width(10).Render(i18n.T("cat.header.id")))
+		sb.WriteString(styles.InputLabel.Copy().Width(14).Render(i18n.T("cat.header.name")))
+		sb.WriteString(styles.InputLabel.Copy().Width(8).Render(i18n.T("cat.header.icon")))
+		sb.WriteString(styles.InputLabel.Copy().Width(12).Render(i18n.T("cat.header.color")))
+		sb.WriteString(styles.InputLabel.Render(i18n.T("cat.header.cmd")))
 		sb.WriteString("\n")
 		sb.WriteString(strings.Repeat("─", 52))
 		sb.WriteString("\n")
@@ -357,7 +358,7 @@ func (m CategoryViewModel) viewList() string {
 	}
 
 	sb.WriteString("\n")
-	sb.WriteString(styles.TabInactive.Render("↑↓/jk: 移動  n: 追加  e: 編集  d: 削除  q/Esc: 閉じる"))
+	sb.WriteString(styles.TabInactive.Render(i18n.T("cat.list.hint")))
 
 	return sb.String()
 }
@@ -365,14 +366,19 @@ func (m CategoryViewModel) viewList() string {
 func (m CategoryViewModel) viewForm() string {
 	var sb strings.Builder
 
-	title := "カテゴリ新規追加"
+	title := i18n.T("cat.form.title.add")
 	if m.isEdit {
-		title = "カテゴリ編集"
+		title = i18n.T("cat.form.title.edit")
 	}
 	sb.WriteString(styles.AppTitle.Render("⌨  cmd-launch-pad - " + title))
 	sb.WriteString("\n\n")
 
-	labels := []string{"ID:", "名前:", "アイコン:", "カラー:"}
+	labels := []string{
+		i18n.T("cat.form.label.id"),
+		i18n.T("cat.form.label.name"),
+		i18n.T("cat.form.label.icon"),
+		i18n.T("cat.form.label.color"),
+	}
 	for i, label := range labels {
 		if i < len(m.inputs) {
 			labelStr := styles.InputLabel.Render(label)
@@ -383,12 +389,12 @@ func (m CategoryViewModel) viewForm() string {
 	sb.WriteString("\n")
 	// 保存ボタン
 	if m.focusIdx == catFieldCount {
-		sb.WriteString(styles.CardFocused.Copy().Width(20).Height(1).Render("[ 保存 (Ctrl+S) ]"))
+		sb.WriteString(styles.CardFocused.Copy().Width(20).Height(1).Render(i18n.T("cat.form.save_btn")))
 	} else {
-		sb.WriteString(styles.CardNormal.Copy().Width(20).Height(1).Render("[ 保存 (Ctrl+S) ]"))
+		sb.WriteString(styles.CardNormal.Copy().Width(20).Height(1).Render(i18n.T("cat.form.save_btn")))
 	}
 	sb.WriteString("\n\n")
-	sb.WriteString(styles.TabInactive.Render("Tab/Enter: 次へ  Ctrl+S: 保存  Esc: キャンセル"))
+	sb.WriteString(styles.TabInactive.Render(i18n.T("cat.form.hint")))
 
 	return sb.String()
 }
@@ -399,24 +405,24 @@ func (m CategoryViewModel) viewConfirm() string {
 	}
 
 	var sb strings.Builder
-	sb.WriteString(styles.AppTitle.Render("⌨  cmd-launch-pad - カテゴリ削除確認"))
+	sb.WriteString(styles.AppTitle.Render("⌨  cmd-launch-pad - " + i18n.T("cat.confirm.title")))
 	sb.WriteString("\n\n")
 
-	sb.WriteString(fmt.Sprintf("カテゴリ %s「%s %s」を削除します。\n\n",
+	sb.WriteString(fmt.Sprintf(i18n.T("cat.confirm.msg"),
 		styles.ErrorStyle.Render(m.deleteTarget.ID),
 		m.deleteTarget.Icon,
 		m.deleteTarget.Name,
 	))
 
 	if m.cmdCountOfDel > 0 {
-		sb.WriteString(fmt.Sprintf("このカテゴリには %s 件のコマンドが属しています。\n",
+		sb.WriteString(fmt.Sprintf(i18n.T("cat.confirm.has_cmds"),
 			styles.ErrorStyle.Render(fmt.Sprintf("%d", m.cmdCountOfDel)),
 		))
-		sb.WriteString("削除方法を選択してください:\n\n")
+		sb.WriteString(i18n.T("cat.confirm.choose"))
 
 		// 選択肢
-		opt0 := fmt.Sprintf("コマンドも一緒に削除 (%d件)", m.cmdCountOfDel)
-		opt1 := "カテゴリのみ削除（コマンドは残す）"
+		opt0 := fmt.Sprintf(i18n.T("cat.confirm.with_cmds"), m.cmdCountOfDel)
+		opt1 := i18n.T("cat.confirm.without_cmds")
 		var btn0, btn1 string
 		if m.deleteConfirm == 0 {
 			btn0 = styles.CardFocused.Copy().Width(30).Render("▶ " + opt0)
@@ -428,12 +434,12 @@ func (m CategoryViewModel) viewConfirm() string {
 		sb.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, btn0, "  ", btn1))
 		sb.WriteString("\n\n")
 	} else {
-		sb.WriteString("このカテゴリにはコマンドが属していません。\n\n")
-		sb.WriteString(styles.CardFocused.Copy().Width(20).Height(1).Render("▶ 削除する"))
+		sb.WriteString(i18n.T("cat.confirm.no_cmds"))
+		sb.WriteString(styles.CardFocused.Copy().Width(20).Height(1).Render(i18n.T("cat.confirm.do_delete")))
 		sb.WriteString("\n\n")
 	}
 
-	sb.WriteString(styles.TabInactive.Render("←→/Tab: 選択切替  Enter: 実行  Esc: キャンセル"))
+	sb.WriteString(styles.TabInactive.Render(i18n.T("cat.confirm.hint")))
 
 	return styles.DialogBox.Render(sb.String())
 }

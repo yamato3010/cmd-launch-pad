@@ -2,10 +2,11 @@ package config
 
 // AppConfig はアプリ全体の設定 (~/.config/cmd-launch-pad/config.yaml)
 type AppConfig struct {
-	Version string    `yaml:"version"`
-	Theme   string    `yaml:"theme"`   // dark / light
-	Columns int       `yaml:"columns"` // グリッドの列数
-	Git     GitConfig `yaml:"git"`
+	Version  string    `yaml:"version"`
+	Theme    string    `yaml:"theme"`    // dark / light
+	Columns  int       `yaml:"columns"`  // グリッドの列数
+	Language string    `yaml:"language"` // 言語設定: "en" / "ja" (空の場合は自動検出)
+	Git      GitConfig `yaml:"git"`
 }
 
 // GitConfig はGit連携に関する設定

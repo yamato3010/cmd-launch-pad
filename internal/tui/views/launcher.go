@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 	"github.com/yamato3010/cmd-launch-pad/internal/models"
 	"github.com/yamato3010/cmd-launch-pad/internal/tui/components"
 	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
@@ -260,17 +261,17 @@ func (m *LauncherModel) nextTab() {
 func (m LauncherModel) View() string {
 	// ステータスバー（最下部固定）
 	bindings := []components.KeyBinding{
-		{Key: "↑↓←→/hjkl", Desc: "移動"},
-		{Key: "Enter", Desc: "実行"},
-		{Key: "n", Desc: "新規"},
-		{Key: "e", Desc: "編集"},
-		{Key: "d", Desc: "削除"},
-		{Key: "Tab", Desc: "タブ切替"},
-		{Key: "/", Desc: "検索"},
-		{Key: "c", Desc: "カテゴリ"},
-		{Key: "g", Desc: "Git"},
-		{Key: "?", Desc: "ヘルプ"},
-		{Key: "q", Desc: "終了"},
+		{Key: "↑↓←→/hjkl", Desc: i18n.T("launcher.key.move")},
+		{Key: "Enter", Desc: i18n.T("launcher.key.exec")},
+		{Key: "n", Desc: i18n.T("launcher.key.new")},
+		{Key: "e", Desc: i18n.T("launcher.key.edit")},
+		{Key: "d", Desc: i18n.T("launcher.key.delete")},
+		{Key: "Tab", Desc: i18n.T("launcher.key.tab")},
+		{Key: "/", Desc: i18n.T("launcher.key.search")},
+		{Key: "c", Desc: i18n.T("launcher.key.category")},
+		{Key: "g", Desc: i18n.T("launcher.key.git")},
+		{Key: "?", Desc: i18n.T("launcher.key.help")},
+		{Key: "q", Desc: i18n.T("launcher.key.quit")},
 	}
 	statusBar := components.RenderStatusBar(bindings, m.width)
 
@@ -315,7 +316,7 @@ func (m LauncherModel) renderTabs() string {
 	parts := []string{}
 
 	// 「全て」タブ
-	allLabel := fmt.Sprintf("📁 全て")
+	allLabel := i18n.T("launcher.tab.all")
 	if m.activeTabID == "" {
 		parts = append(parts, styles.TabActive.Render(allLabel))
 	} else {

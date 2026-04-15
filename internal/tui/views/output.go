@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
 
@@ -89,11 +90,11 @@ func (m OutputViewModel) Update(msg tea.Msg) (OutputViewModel, tea.Cmd) {
 func (m OutputViewModel) buildContent() string {
 	var sb strings.Builder
 	if m.errText != "" {
-		sb.WriteString(styles.ErrorStyle.Render("エラー: " + m.errText))
+		sb.WriteString(styles.ErrorStyle.Render(i18n.T("output.error_prefix") + m.errText))
 		sb.WriteString("\n\n")
 	}
 	if strings.TrimSpace(m.output) == "" {
-		sb.WriteString(styles.TabInactive.Render("(出力なし)"))
+		sb.WriteString(styles.TabInactive.Render(i18n.T("output.empty")))
 	} else {
 		sb.WriteString(m.output)
 	}
@@ -110,17 +111,17 @@ func (m OutputViewModel) ModalView() string {
 	var sb strings.Builder
 
 	// タイトル
-	titleText := "🖥  実行結果"
+	titleText := i18n.T("output.title")
 	if m.commandName != "" {
-		titleText = "🖥  実行結果: " + m.commandName
+		titleText = i18n.T("output.title_with_name") + m.commandName
 	}
 	sb.WriteString(styles.AppTitle.Render(titleText))
 	sb.WriteString("\n")
 
 	if m.errText != "" {
-		sb.WriteString(styles.ErrorStyle.Render("終了ステータス: エラー"))
+		sb.WriteString(styles.ErrorStyle.Render(i18n.T("output.status_err")))
 	} else {
-		sb.WriteString(styles.SuccessStyle.Render("終了ステータス: 正常終了"))
+		sb.WriteString(styles.SuccessStyle.Render(i18n.T("output.status_ok")))
 	}
 	sb.WriteString("\n\n")
 
@@ -135,11 +136,11 @@ func (m OutputViewModel) ModalView() string {
 		))
 		sb.WriteString("\n")
 		sb.WriteString(styles.TabInactive.Render(
-			"↑↓/PgUp/PgDn: スクロール  " + fmt.Sprintf("%d%%", pct),
+			fmt.Sprintf(i18n.T("output.scroll_hint"), pct),
 		))
 	} else {
 		if strings.TrimSpace(m.output) == "" && m.errText == "" {
-			sb.WriteString(styles.TabInactive.Render("(出力なし)"))
+			sb.WriteString(styles.TabInactive.Render(i18n.T("output.empty")))
 		} else {
 			// viewport未初期化時は直接表示（最大20行）
 			lines := strings.Split(m.output, "\n")
@@ -149,14 +150,16 @@ func (m OutputViewModel) ModalView() string {
 			}
 			sb.WriteString(strings.Join(lines[:max], "\n"))
 			if len(lines) > 20 {
-				sb.WriteString(styles.TabInactive.Render("\n... (残り " + fmt.Sprintf("%d", len(lines)-20) + " 行)"))
+				sb.WriteString(styles.TabInactive.Render(
+					fmt.Sprintf(i18n.T("output.remaining_lines"), len(lines)-20),
+				))
 			}
 		}
 		sb.WriteString("\n")
 	}
 
 	sb.WriteString("\n")
-	sb.WriteString(styles.TabInactive.Render("q / Esc / Enter で閉じる"))
+	sb.WriteString(styles.TabInactive.Render(i18n.T("output.close_hint")))
 
 	return sb.String()
 }

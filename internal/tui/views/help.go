@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
 
@@ -48,7 +49,7 @@ func (m HelpModel) View() string {
 func (m HelpModel) ModalView() string {
 	var sb strings.Builder
 
-	sb.WriteString(styles.AppTitle.Render("❓  キーバインド一覧"))
+	sb.WriteString(styles.AppTitle.Render(i18n.T("help.title")))
 	sb.WriteString("\n\n")
 
 	type helpEntry struct {
@@ -57,17 +58,17 @@ func (m HelpModel) ModalView() string {
 	}
 
 	entries := []helpEntry{
-		{"↑↓←→ / hjkl", "カーソル移動"},
-		{"Enter", "コマンド実行"},
-		{"n", "新規コマンド登録"},
-		{"e", "選択中のコマンド編集"},
-		{"d", "選択中のコマンド削除"},
-		{"Tab", "カテゴリタブ切り替え"},
-		{"/", "検索モード"},
-		{"c", "カテゴリ管理"},
-		{"g", "Git操作画面"},
-		{"?", "ヘルプ表示/非表示"},
-		{"q / Ctrl+C", "アプリ終了"},
+		{"↑↓←→ / hjkl", i18n.T("help.move")},
+		{"Enter", i18n.T("help.exec")},
+		{"n", i18n.T("help.new")},
+		{"e", i18n.T("help.edit")},
+		{"d", i18n.T("help.delete")},
+		{"Tab", i18n.T("help.tab")},
+		{"/", i18n.T("help.search")},
+		{"c", i18n.T("help.category")},
+		{"g", i18n.T("help.git")},
+		{"?", i18n.T("help.help")},
+		{"q / Ctrl+C", i18n.T("help.quit")},
 	}
 
 	for _, e := range entries {
@@ -80,7 +81,7 @@ func (m HelpModel) ModalView() string {
 	}
 
 	sb.WriteString("\n")
-	sb.WriteString(styles.TabInactive.Render("q / Esc / ? で閉じる"))
+	sb.WriteString(styles.TabInactive.Render(i18n.T("help.close")))
 
 	return sb.String()
 }

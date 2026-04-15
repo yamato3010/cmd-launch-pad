@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 	"github.com/yamato3010/cmd-launch-pad/internal/models"
 	"github.com/yamato3010/cmd-launch-pad/internal/tui/components"
 	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
@@ -32,7 +33,7 @@ type SearchModel struct {
 // NewSearchModel は新しいSearchModelを生成する
 func NewSearchModel(commands []models.Command, categories []models.Category) SearchModel {
 	ti := textinput.New()
-	ti.Placeholder = "コマンド名・説明・カテゴリで検索..."
+	ti.Placeholder = i18n.T("search.placeholder")
 	ti.CharLimit = 100
 	ti.Focus()
 
@@ -120,24 +121,24 @@ func (m SearchModel) View() string {
 func (m SearchModel) ModalView() string {
 	var sb strings.Builder
 
-	sb.WriteString(styles.AppTitle.Render("🔍  検索"))
+	sb.WriteString(styles.AppTitle.Render(i18n.T("search.title")))
 	sb.WriteString("\n\n")
 
 	sb.WriteString(m.input.View())
 	sb.WriteString("\n\n")
 
 	if len(m.filtered) == 0 {
-		sb.WriteString(styles.TabInactive.Render("該当するコマンドが見つかりません"))
+		sb.WriteString(styles.TabInactive.Render(i18n.T("search.no_results")))
 	} else {
 		sb.WriteString(fmt.Sprintf("%s\n\n", styles.TabInactive.Render(
-			fmt.Sprintf("%d 件ヒット", len(m.filtered)),
+			fmt.Sprintf(i18n.T("search.results"), len(m.filtered)),
 		)))
 		grid := components.RenderGrid(m.filtered, m.cursor, 3, false)
 		sb.WriteString(grid)
 	}
 
 	sb.WriteString("\n")
-	sb.WriteString(styles.TabInactive.Render("↑↓/jk: 移動  Enter: 実行  Esc: 閉じる"))
+	sb.WriteString(styles.TabInactive.Render(i18n.T("search.hint")))
 
 	return sb.String()
 }

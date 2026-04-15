@@ -6,17 +6,18 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/yamato3010/cmd-launch-pad/internal/config"
 	gitpkg "github.com/yamato3010/cmd-launch-pad/internal/git"
+	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 )
 
 var syncCmd = &cobra.Command{
 	Use:   "sync",
-	Short: "Gitによる設定同期",
-	Long:  `Gitリポジトリを使って設定ファイルを同期します。`,
+	Short: i18n.T("sync.short"),
+	Long:  i18n.T("sync.long"),
 }
 
 var syncPushCmd = &cobra.Command{
 	Use:   "push",
-	Short: "設定をリモートにプッシュ",
+	Short: i18n.T("sync.push.short"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfgDir, err := config.ConfigDir()
 		if err != nil {
@@ -24,7 +25,7 @@ var syncPushCmd = &cobra.Command{
 		}
 		mgr, err := gitpkg.NewGitManager(cfgDir)
 		if err != nil {
-			return fmt.Errorf("Gitリポジトリが初期化されていません。先に `clp sync init` を実行してください: %w", err)
+			return fmt.Errorf(i18n.T("sync.err.not_init"), err)
 		}
 		appCfg, err := config.LoadAppConfig()
 		if err != nil {
@@ -39,14 +40,14 @@ var syncPushCmd = &cobra.Command{
 		if err := mgr.Push("origin", appCfg.Git.Branch, nil); err != nil {
 			return err
 		}
-		fmt.Println("✅ プッシュ完了")
+		fmt.Println(i18n.T("sync.push.success"))
 		return nil
 	},
 }
 
 var syncPullCmd = &cobra.Command{
 	Use:   "pull",
-	Short: "リモートから設定をプル",
+	Short: i18n.T("sync.pull.short"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfgDir, err := config.ConfigDir()
 		if err != nil {
@@ -54,7 +55,7 @@ var syncPullCmd = &cobra.Command{
 		}
 		mgr, err := gitpkg.NewGitManager(cfgDir)
 		if err != nil {
-			return fmt.Errorf("Gitリポジトリが初期化されていません: %w", err)
+			return fmt.Errorf(i18n.T("sync.err.not_init_bare"), err)
 		}
 		appCfg, err := config.LoadAppConfig()
 		if err != nil {
@@ -63,14 +64,14 @@ var syncPullCmd = &cobra.Command{
 		if err := mgr.Pull("origin", appCfg.Git.Branch, nil); err != nil {
 			return err
 		}
-		fmt.Println("✅ プル完了")
+		fmt.Println(i18n.T("sync.pull.success"))
 		return nil
 	},
 }
 
 var syncStatusCmd = &cobra.Command{
 	Use:   "status",
-	Short: "Gitステータスを表示",
+	Short: i18n.T("sync.status.short"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfgDir, err := config.ConfigDir()
 		if err != nil {
@@ -78,14 +79,14 @@ var syncStatusCmd = &cobra.Command{
 		}
 		mgr, err := gitpkg.NewGitManager(cfgDir)
 		if err != nil {
-			return fmt.Errorf("Gitリポジトリが初期化されていません: %w", err)
+			return fmt.Errorf(i18n.T("sync.err.not_init_bare"), err)
 		}
 		status, err := mgr.Status()
 		if err != nil {
 			return err
 		}
 		if status == "" {
-			fmt.Println("✅ 変更なし (クリーン)")
+			fmt.Println(i18n.T("sync.status.clean"))
 		} else {
 			fmt.Println(status)
 		}
@@ -95,7 +96,7 @@ var syncStatusCmd = &cobra.Command{
 
 var syncInitCmd = &cobra.Command{
 	Use:   "init",
-	Short: "設定ディレクトリをGitリポジトリとして初期化",
+	Short: i18n.T("sync.init.short"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfgDir, err := config.EnsureConfigDir()
 		if err != nil {
@@ -104,7 +105,7 @@ var syncInitCmd = &cobra.Command{
 		if _, err := gitpkg.Init(cfgDir); err != nil {
 			return err
 		}
-		fmt.Printf("✅ Gitリポジトリを初期化しました: %s\n", cfgDir)
+		fmt.Printf(i18n.T("sync.init.success")+"\n", cfgDir)
 		return nil
 	},
 }

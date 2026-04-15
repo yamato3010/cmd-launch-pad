@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 	"github.com/yamato3010/cmd-launch-pad/internal/models"
 	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
@@ -29,7 +30,7 @@ func RenderCard(cmd models.Command, focused bool) string {
 func RenderAddCard(focused bool) string {
 	content := fmt.Sprintf("%s\n%s\n%s",
 		"➕",
-		styles.CardTitle.Render("新規追加"),
+		styles.CardTitle.Render(i18n.T("launcher.key.new")),
 		styles.CardDesc.Render(""),
 	)
 	if focused {

@@ -3,6 +3,7 @@ package components
 import (
 	"strings"
 
+	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
 
@@ -29,7 +30,7 @@ func RenderStatusBar(bindings []KeyBinding, width int) string {
 func RenderDescPanel(name, description string, width int) string {
 	if name == "" && description == "" {
 		// 追加カードにフォーカスしている場合などは空パネルを返す
-		inner := styles.DescPanelText.Render("新しいコマンドを追加するには Enter を押してください")
+		inner := styles.DescPanelText.Render(i18n.T("desc.add_hint"))
 		innerWidth := width - 4 // ボーダー + パディング分
 		if innerWidth < 1 {
 			innerWidth = 1

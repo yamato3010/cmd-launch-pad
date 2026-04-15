@@ -10,6 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/yamato3010/cmd-launch-pad/internal/config"
 	gitpkg "github.com/yamato3010/cmd-launch-pad/internal/git"
+	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 	"github.com/yamato3010/cmd-launch-pad/internal/models"
 	"github.com/yamato3010/cmd-launch-pad/internal/repository"
 	"github.com/yamato3010/cmd-launch-pad/internal/tui/components"
@@ -75,15 +76,15 @@ type App struct {
 func NewApp() (*App, error) {
 	repo, err := repository.NewCommandRepository()
 	if err != nil {
-		return nil, fmt.Errorf("リポジトリの初期化に失敗しました: %w", err)
+		return nil, fmt.Errorf(i18n.T("app.err.repo_init"), err)
 	}
 	if err := repo.InitDefaults(); err != nil {
-		return nil, fmt.Errorf("デフォルトデータの初期化に失敗しました: %w", err)
+		return nil, fmt.Errorf(i18n.T("app.err.defaults_init"), err)
 	}
 
 	appCfg, err := config.LoadAppConfig()
 	if err != nil {
-		return nil, fmt.Errorf("設定ファイルの読み込みに失敗しました: %w", err)
+		return nil, fmt.Errorf(i18n.T("app.err.config_load"), err)
 	}
 	// デフォルト設定を保存（初回のみ）
 	if err := config.SaveAppConfig(appCfg); err != nil {
@@ -156,7 +157,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case execCommandMsg:
 		if msg.err != nil {
-			a.err = fmt.Sprintf("コマンド実行エラー: %v", msg.err)
+			a.err = fmt.Sprintf(i18n.T("app.err.exec"), msg.err)
 		} else {
 			a.err = ""
 		}
@@ -176,7 +177,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case gitResultMsg:
 		text := msg.text
 		if msg.err != nil {
-			text = fmt.Sprintf("❌ エラー: %v", msg.err)
+			text = fmt.Sprintf(i18n.T("app.git.err.prefix"), msg.err)
 		}
 		a.gitView.SetStatus(text)
 		return a, nil
@@ -197,7 +198,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		// エラーがあればcatView内にインライン表示
 		if msg.err != nil {
-			a.catView.SetError(fmt.Sprintf("カテゴリ操作エラー: %v", msg.err))
+			a.catView.SetError(fmt.Sprintf(i18n.T("app.err.category"), msg.err))
 		}
 		return a, nil
 	}
@@ -292,7 +293,7 @@ func (a App) updateDetail(msg tea.Msg) (tea.Model, tea.Cmd) {
 				err = a.repo.UpdateCommand(&cmdData)
 			}
 			if err != nil {
-				a.err = fmt.Sprintf("保存エラー: %v", err)
+				a.err = fmt.Sprintf(i18n.T("app.err.save"), err)
 			} else {
 				a.err = ""
 				a.reloadCommands()
@@ -398,7 +399,7 @@ func (a App) updateConfirmDelete(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.state = ViewLauncher
 		if cMsg.Confirmed && cMsg.Command != nil {
 			if err := a.repo.DeleteCommand(cMsg.Command.ID); err != nil {
-				a.err = fmt.Sprintf("削除エラー: %v", err)
+				a.err = fmt.Sprintf(i18n.T("app.err.delete"), err)
 			} else {
 				a.err = ""
 				a.reloadCommands()
@@ -460,7 +461,7 @@ func (a *App) handleCategoryAction(msg views.CategoryDoneMsg) tea.Cmd {
 			if err := repo.AddCategory(&cat); err != nil {
 				return categoryResultMsg{err: err}
 			}
-			return categoryResultMsg{text: "✅ カテゴリを追加しました"}
+			return categoryResultMsg{text: i18n.T("app.cat.add_done")}
 		}
 	case views.CategoryActionEdit:
 		cat := msg.Category
@@ -469,7 +470,7 @@ func (a *App) handleCategoryAction(msg views.CategoryDoneMsg) tea.Cmd {
 			if err := repo.UpdateCategory(&cat); err != nil {
 				return categoryResultMsg{err: err}
 			}
-			return categoryResultMsg{text: "✅ カテゴリを更新しました"}
+			return categoryResultMsg{text: i18n.T("app.cat.edit_done")}
 		}
 	case views.CategoryActionDelete:
 		cat := msg.Category
@@ -479,7 +480,7 @@ func (a *App) handleCategoryAction(msg views.CategoryDoneMsg) tea.Cmd {
 			if err := repo.DeleteCategory(cat.ID, withCmds); err != nil {
 				return categoryResultMsg{err: err}
 			}
-			return categoryResultMsg{text: "✅ カテゴリを削除しました"}
+			return categoryResultMsg{text: i18n.T("app.cat.delete_done")}
 		}
 	}
 	return nil
@@ -489,12 +490,12 @@ func (a *App) handleCategoryAction(msg views.CategoryDoneMsg) tea.Cmd {
 func (a *App) reloadCommands() {
 	cmds, err := a.repo.ListCommands()
 	if err != nil {
-		a.err = fmt.Sprintf("再読み込みエラー: %v", err)
+		a.err = fmt.Sprintf(i18n.T("app.err.reload"), err)
 		return
 	}
 	cats, err := a.repo.ListCategories()
 	if err != nil {
-		a.err = fmt.Sprintf("再読み込みエラー: %v", err)
+		a.err = fmt.Sprintf(i18n.T("app.err.reload"), err)
 		return
 	}
 	a.commands = cmds
@@ -550,13 +551,13 @@ func (a *App) handleGitAction(msg views.GitDoMsg) tea.Cmd {
 				return gitResultMsg{err: err}
 			}
 			a.gitMgr = mgr
-			return gitResultMsg{text: "✅ Gitリポジトリを初期化しました"}
+			return gitResultMsg{text: i18n.T("app.git.init_done")}
 		}
 
 	case views.GitActionStatus:
 		return func() tea.Msg {
 			if a.gitMgr == nil {
-				return gitResultMsg{err: fmt.Errorf("Gitリポジトリが初期化されていません")}
+				return gitResultMsg{err: fmt.Errorf("%s", i18n.T("app.git.not_init"))}
 			}
 			status, err := a.gitMgr.Status()
 			if err != nil {
@@ -568,7 +569,7 @@ func (a *App) handleGitAction(msg views.GitDoMsg) tea.Cmd {
 	case views.GitActionCommit:
 		return func() tea.Msg {
 			if a.gitMgr == nil {
-				return gitResultMsg{err: fmt.Errorf("Gitリポジトリが初期化されていません")}
+				return gitResultMsg{err: fmt.Errorf("%s", i18n.T("app.git.not_init"))}
 			}
 			if err := a.gitMgr.AddAll(); err != nil {
 				return gitResultMsg{err: err}
@@ -580,43 +581,43 @@ func (a *App) handleGitAction(msg views.GitDoMsg) tea.Cmd {
 			if err := a.gitMgr.Commit(commitMsg); err != nil {
 				return gitResultMsg{err: err}
 			}
-			return gitResultMsg{text: fmt.Sprintf("✅ コミット完了: %s", commitMsg)}
+			return gitResultMsg{text: fmt.Sprintf(i18n.T("app.git.commit_done"), commitMsg)}
 		}
 
 	case views.GitActionPush:
 		return func() tea.Msg {
 			if a.gitMgr == nil {
-				return gitResultMsg{err: fmt.Errorf("Gitリポジトリが初期化されていません")}
+				return gitResultMsg{err: fmt.Errorf("%s", i18n.T("app.git.not_init"))}
 			}
 			if err := a.gitMgr.Push("origin", a.appCfg.Git.Branch, nil); err != nil {
 				return gitResultMsg{err: err}
 			}
-			return gitResultMsg{text: "✅ プッシュ完了"}
+			return gitResultMsg{text: i18n.T("app.git.push_done")}
 		}
 
 	case views.GitActionPull:
 		return func() tea.Msg {
 			if a.gitMgr == nil {
-				return gitResultMsg{err: fmt.Errorf("Gitリポジトリが初期化されていません")}
+				return gitResultMsg{err: fmt.Errorf("%s", i18n.T("app.git.not_init"))}
 			}
 			if err := a.gitMgr.Pull("origin", a.appCfg.Git.Branch, nil); err != nil {
 				return gitResultMsg{err: err}
 			}
 			a.reloadCommands()
-			return gitResultMsg{text: "✅ プル完了"}
+			return gitResultMsg{text: i18n.T("app.git.pull_done")}
 		}
 
 	case views.GitActionRemote:
 		return func() tea.Msg {
 			if a.gitMgr == nil {
-				return gitResultMsg{err: fmt.Errorf("Gitリポジトリが初期化されていません")}
+				return gitResultMsg{err: fmt.Errorf("%s", i18n.T("app.git.not_init"))}
 			}
 			if err := a.gitMgr.SetRemote("origin", msg.Payload); err != nil {
 				return gitResultMsg{err: err}
 			}
 			a.appCfg.Git.Remote = msg.Payload
 			_ = config.SaveAppConfig(a.appCfg)
-			return gitResultMsg{text: fmt.Sprintf("✅ リモートURLを設定しました: %s", msg.Payload)}
+			return gitResultMsg{text: fmt.Sprintf(i18n.T("app.git.remote_done"), msg.Payload)}
 		}
 	}
 	return nil

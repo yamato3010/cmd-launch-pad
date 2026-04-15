@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	AppDirName      = "cmd-launch-pad"
-	ConfigFileName  = "config.yaml"
+	AppDirName       = "cmd-launch-pad"
+	ConfigFileName   = "config.yaml"
 	CommandsFileName = "commands.yaml"
 )
 
@@ -18,7 +18,7 @@ const (
 func ConfigDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return "", fmt.Errorf("ホームディレクトリの取得に失敗しました: %w", err)
+		return "", fmt.Errorf("failed to get home directory: %w", err)
 	}
 	return filepath.Join(home, ".config", AppDirName), nil
 }
@@ -30,7 +30,7 @@ func EnsureConfigDir() (string, error) {
 		return "", err
 	}
 	if err := os.MkdirAll(dir, 0755); err != nil {
-		return "", fmt.Errorf("設定ディレクトリの作成に失敗しました: %w", err)
+		return "", fmt.Errorf("failed to create config directory: %w", err)
 	}
 	return dir, nil
 }
@@ -48,12 +48,12 @@ func LoadAppConfig() (*AppConfig, error) {
 		return DefaultAppConfig(), nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("設定ファイルの読み込みに失敗しました: %w", err)
+		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
 	var cfg AppConfig
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		return nil, fmt.Errorf("設定ファイルのパースに失敗しました: %w", err)
+		return nil, fmt.Errorf("failed to parse config file: %w", err)
 	}
 	return &cfg, nil
 }
@@ -68,10 +68,10 @@ func SaveAppConfig(cfg *AppConfig) error {
 
 	data, err := yaml.Marshal(cfg)
 	if err != nil {
-		return fmt.Errorf("設定ファイルのシリアライズに失敗しました: %w", err)
+		return fmt.Errorf("failed to serialize config file: %w", err)
 	}
 	if err := os.WriteFile(path, data, 0644); err != nil {
-		return fmt.Errorf("設定ファイルの書き込みに失敗しました: %w", err)
+		return fmt.Errorf("failed to write config file: %w", err)
 	}
 	return nil
 }
