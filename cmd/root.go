@@ -8,6 +8,7 @@ import (
 	"github.com/yamato3010/cmd-launch-pad/internal/config"
 	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 	"github.com/yamato3010/cmd-launch-pad/internal/tui"
+	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
 
 var rootCmd = &cobra.Command{
@@ -28,11 +29,12 @@ func Execute() {
 }
 
 func init() {
-	// 設定ファイルから言語を読み込み、i18n を初期化する
-	// エラーが発生した場合はデフォルト(英語)のまま続行する
+	// 設定ファイルから言語とテーマを読み込み、i18n と配色を初期化する
+	// エラーが発生した場合はデフォルト(英語・固定配色)のまま続行する
 	if cfg, err := config.LoadAppConfig(); err == nil {
 		lang := i18n.DetectLang(cfg.Language)
 		i18n.SetLang(lang)
+		styles.Init(cfg.Theme)
 	} else {
 		lang := i18n.DetectLang("")
 		i18n.SetLang(lang)

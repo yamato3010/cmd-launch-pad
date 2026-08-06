@@ -14,127 +14,208 @@ func StripANSI(s string) string {
 	return ansiEscapeRe.ReplaceAllString(s, "")
 }
 
-// カラーパレット (Tokyo Night 風)
+// カラーパレット (Init でテーマに応じて設定される)
 var (
-	ColorBg        = lipgloss.Color("#1a1b26")
-	ColorBgAlt     = lipgloss.Color("#16161e")
-	ColorBorder    = lipgloss.Color("#3b4261")
-	ColorBorderFoc = lipgloss.Color("#7aa2f7")
-	ColorText      = lipgloss.Color("#c0caf5")
-	ColorTextDim   = lipgloss.Color("#565f89")
-	ColorAccent    = lipgloss.Color("#7aa2f7")
-	ColorGreen     = lipgloss.Color("#9ece6a")
-	ColorYellow    = lipgloss.Color("#e0af68")
-	ColorRed       = lipgloss.Color("#f7768e")
-	ColorCyan      = lipgloss.Color("#2ac3de")
+	ColorBg         lipgloss.TerminalColor
+	ColorBgAlt      lipgloss.TerminalColor
+	ColorBorder     lipgloss.TerminalColor
+	ColorBorderFoc  lipgloss.TerminalColor
+	ColorText       lipgloss.TerminalColor
+	ColorTextAlt    lipgloss.TerminalColor
+	ColorTextDim    lipgloss.TerminalColor
+	ColorTextDimmer lipgloss.TerminalColor
+	ColorAccent     lipgloss.TerminalColor
+	ColorGreen      lipgloss.TerminalColor
+	ColorYellow     lipgloss.TerminalColor
+	ColorRed        lipgloss.TerminalColor
+	ColorCyan       lipgloss.TerminalColor
 )
 
-// AppTitle はアプリタイトルのスタイル
-var AppTitle = lipgloss.NewStyle().
-	Bold(true).
-	Foreground(ColorAccent).
-	Padding(0, 1)
+// init はデフォルトテーマで初期化する。
+// 設定ファイルを読み込んだ後に Init が呼ばれて上書きされる。
+func init() {
+	Init("")
+}
 
-// TabActive はアクティブなタブのスタイル
-var TabActive = lipgloss.NewStyle().
-	Bold(true).
-	Foreground(ColorAccent).
-	Underline(true).
-	Padding(0, 1)
+// Init はテーマ名に応じてカラーパレットとスタイルを初期化する。
+// "ansi" を指定するとターミナル側の ANSI 配色に従う。それ以外は固定配色 (Tokyo Night 風)。
+func Init(theme string) {
+	if theme == "ansi" {
+		setANSIPalette()
+	} else {
+		setFixedPalette()
+	}
+	buildStyles()
+}
 
-// TabInactive は非アクティブなタブのスタイル
-var TabInactive = lipgloss.NewStyle().
-	Foreground(ColorTextDim).
-	Padding(0, 1)
+// setFixedPalette は固定配色 (Tokyo Night 風) を設定する
+func setFixedPalette() {
+	ColorBg = lipgloss.Color("#1a1b26")
+	ColorBgAlt = lipgloss.Color("#16161e")
+	ColorBorder = lipgloss.Color("#3b4261")
+	ColorBorderFoc = lipgloss.Color("#7aa2f7")
+	ColorText = lipgloss.Color("#c0caf5")
+	ColorTextAlt = lipgloss.Color("#a9b1d6")
+	ColorTextDim = lipgloss.Color("#565f89")
+	ColorTextDimmer = lipgloss.Color("#414868")
+	ColorAccent = lipgloss.Color("#7aa2f7")
+	ColorGreen = lipgloss.Color("#9ece6a")
+	ColorYellow = lipgloss.Color("#e0af68")
+	ColorRed = lipgloss.Color("#f7768e")
+	ColorCyan = lipgloss.Color("#2ac3de")
+}
 
-// CardNormal は通常状態のカードスタイル
-var CardNormal = lipgloss.NewStyle().
-	Border(lipgloss.RoundedBorder()).
-	BorderForeground(ColorBorder).
-	Padding(0, 1).
-	Width(14).
-	Height(5)
+// setANSIPalette は ANSI パレットのインデックスを設定する。
+// 実際の色はターミナルのカラースキームが決める。
+// 本文の文字色と背景色は NoColor にして、ターミナルの既定色を透過させる。
+func setANSIPalette() {
+	ColorBg = lipgloss.NoColor{}
+	ColorBgAlt = lipgloss.NoColor{}
+	ColorBorder = lipgloss.Color("8")     // bright black
+	ColorBorderFoc = lipgloss.Color("12") // bright blue
+	ColorText = lipgloss.NoColor{}
+	ColorTextAlt = lipgloss.NoColor{}
+	ColorTextDim = lipgloss.Color("8")
+	ColorTextDimmer = lipgloss.Color("8")
+	ColorAccent = lipgloss.Color("4") // blue
+	ColorGreen = lipgloss.Color("2")
+	ColorYellow = lipgloss.Color("3")
+	ColorRed = lipgloss.Color("1")
+	ColorCyan = lipgloss.Color("6")
+}
 
-// CardFocused はフォーカス状態のカードスタイル
-var CardFocused = lipgloss.NewStyle().
-	Border(lipgloss.RoundedBorder()).
-	BorderForeground(ColorBorderFoc).
-	Padding(0, 1).
-	Width(14).
-	Height(5)
+// スタイル (buildStyles で構築される)
+var (
+	// AppTitle はアプリタイトルのスタイル
+	AppTitle lipgloss.Style
+	// TabActive はアクティブなタブのスタイル
+	TabActive lipgloss.Style
+	// TabInactive は非アクティブなタブのスタイル
+	TabInactive lipgloss.Style
+	// CardNormal は通常状態のカードスタイル
+	CardNormal lipgloss.Style
+	// CardFocused はフォーカス状態のカードスタイル
+	CardFocused lipgloss.Style
+	// CardTitle はカードタイトルのスタイル
+	CardTitle lipgloss.Style
+	// CardDesc はカード説明文のスタイル
+	CardDesc lipgloss.Style
+	// StatusBar はステータスバーのスタイル
+	StatusBar lipgloss.Style
+	// StatusBarKey はステータスバーのキーのスタイル
+	StatusBarKey lipgloss.Style
+	// Header はヘッダーのスタイル
+	Header lipgloss.Style
+	// ErrorStyle はエラーメッセージのスタイル
+	ErrorStyle lipgloss.Style
+	// SuccessStyle は成功メッセージのスタイル
+	SuccessStyle lipgloss.Style
+	// HelpKey はヘルプ画面のキー表示スタイル
+	HelpKey lipgloss.Style
+	// HelpDesc はヘルプ画面の説明文スタイル
+	HelpDesc lipgloss.Style
+	// InputLabel は入力フォームのラベルスタイル
+	InputLabel lipgloss.Style
+	// DialogBox はダイアログボックスのスタイル
+	DialogBox lipgloss.Style
+	// DescPanel はコマンド説明パネルのスタイル
+	DescPanel lipgloss.Style
+	// DescPanelTitle はコマンド説明パネルのタイトルスタイル
+	DescPanelTitle lipgloss.Style
+	// DescPanelText はコマンド説明パネルの説明文スタイル
+	DescPanelText lipgloss.Style
+)
 
-// CardTitle はカードタイトルのスタイル
-var CardTitle = lipgloss.NewStyle().
-	Bold(true).
-	Foreground(ColorText).
-	MaxWidth(12)
+// buildStyles は現在のカラーパレットからスタイルを構築する
+func buildStyles() {
+	AppTitle = lipgloss.NewStyle().
+		Bold(true).
+		Foreground(ColorAccent).
+		Padding(0, 1)
 
-// CardDesc はカード説明文のスタイル
-var CardDesc = lipgloss.NewStyle().
-	Foreground(ColorTextDim).
-	MaxWidth(12)
+	TabActive = lipgloss.NewStyle().
+		Bold(true).
+		Foreground(ColorAccent).
+		Underline(true).
+		Padding(0, 1)
 
-// StatusBar はステータスバーのスタイル
-var StatusBar = lipgloss.NewStyle().
-	Foreground(ColorTextDim).
-	Background(ColorBgAlt).
-	Padding(0, 1)
+	TabInactive = lipgloss.NewStyle().
+		Foreground(ColorTextDim).
+		Padding(0, 1)
 
-// StatusBarKey はステータスバーのキーのスタイル
-var StatusBarKey = lipgloss.NewStyle().
-	Foreground(ColorAccent).
-	Background(ColorBgAlt).
-	Bold(true)
+	CardNormal = lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(ColorBorder).
+		Padding(0, 1).
+		Width(14).
+		Height(5)
 
-// Header はヘッダーのスタイル
-var Header = lipgloss.NewStyle().
-	Foreground(ColorText).
-	Background(ColorBgAlt).
-	Padding(0, 1)
+	CardFocused = lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(ColorBorderFoc).
+		Padding(0, 1).
+		Width(14).
+		Height(5)
 
-// ErrorStyle はエラーメッセージのスタイル
-var ErrorStyle = lipgloss.NewStyle().
-	Foreground(ColorRed).
-	Bold(true)
+	CardTitle = lipgloss.NewStyle().
+		Bold(true).
+		Foreground(ColorText).
+		MaxWidth(12)
 
-// SuccessStyle は成功メッセージのスタイル
-var SuccessStyle = lipgloss.NewStyle().
-	Foreground(ColorGreen).
-	Bold(true)
+	CardDesc = lipgloss.NewStyle().
+		Foreground(ColorTextDim).
+		MaxWidth(12)
 
-// HelpKey はヘルプ画面のキー表示スタイル
-var HelpKey = lipgloss.NewStyle().
-	Foreground(ColorAccent).
-	Bold(true).
-	Width(12)
+	StatusBar = lipgloss.NewStyle().
+		Foreground(ColorTextDim).
+		Background(ColorBgAlt).
+		Padding(0, 1)
 
-// HelpDesc はヘルプ画面の説明文スタイル
-var HelpDesc = lipgloss.NewStyle().
-	Foreground(ColorText)
+	StatusBarKey = lipgloss.NewStyle().
+		Foreground(ColorAccent).
+		Background(ColorBgAlt).
+		Bold(true)
 
-// InputLabel は入力フォームのラベルスタイル
-var InputLabel = lipgloss.NewStyle().
-	Foreground(ColorAccent).
-	Bold(true).
-	Width(14)
+	Header = lipgloss.NewStyle().
+		Foreground(ColorText).
+		Background(ColorBgAlt).
+		Padding(0, 1)
 
-// DialogBox はダイアログボックスのスタイル
-var DialogBox = lipgloss.NewStyle().
-	Border(lipgloss.RoundedBorder()).
-	BorderForeground(ColorAccent).
-	Padding(1, 2)
+	ErrorStyle = lipgloss.NewStyle().
+		Foreground(ColorRed).
+		Bold(true)
 
-// DescPanel はコマンド説明パネルのスタイル
-var DescPanel = lipgloss.NewStyle().
-	Border(lipgloss.RoundedBorder()).
-	BorderForeground(ColorBorder).
-	Padding(0, 1)
+	SuccessStyle = lipgloss.NewStyle().
+		Foreground(ColorGreen).
+		Bold(true)
 
-// DescPanelTitle はコマンド説明パネルのタイトルスタイル
-var DescPanelTitle = lipgloss.NewStyle().
-	Bold(true).
-	Foreground(ColorAccent)
+	HelpKey = lipgloss.NewStyle().
+		Foreground(ColorAccent).
+		Bold(true).
+		Width(12)
 
-// DescPanelText はコマンド説明パネルの説明文スタイル
-var DescPanelText = lipgloss.NewStyle().
-	Foreground(ColorText)
+	HelpDesc = lipgloss.NewStyle().
+		Foreground(ColorText)
+
+	InputLabel = lipgloss.NewStyle().
+		Foreground(ColorAccent).
+		Bold(true).
+		Width(14)
+
+	DialogBox = lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(ColorAccent).
+		Padding(1, 2)
+
+	DescPanel = lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(ColorBorder).
+		Padding(0, 1)
+
+	DescPanelTitle = lipgloss.NewStyle().
+		Bold(true).
+		Foreground(ColorAccent)
+
+	DescPanelText = lipgloss.NewStyle().
+		Foreground(ColorText)
+}

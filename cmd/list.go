@@ -11,6 +11,7 @@ import (
 	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 	"github.com/yamato3010/cmd-launch-pad/internal/models"
 	"github.com/yamato3010/cmd-launch-pad/internal/repository"
+	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
 )
 
 // ============================================================
@@ -52,35 +53,49 @@ _clp_pick() {
 // スタイル
 // ============================================================
 
+// スタイルは styles.Init 後のカラーパレットから構築するため、
+// 変数宣言時ではなく initListStyles で組み立てる。
 var (
+	listHeaderStyle       lipgloss.Style
+	listSelectedNameStyle lipgloss.Style
+	listSelectedCmdStyle  lipgloss.Style
+	listNormalNameStyle   lipgloss.Style
+	listNormalCmdStyle    lipgloss.Style
+	listDimStyle          lipgloss.Style
+	listFooterStyle       lipgloss.Style
+	listCursorStyle       lipgloss.Style
+)
+
+// initListStyles は現在のカラーパレットから list 表示用のスタイルを構築する
+func initListStyles() {
 	listHeaderStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("#c0caf5"))
+		Bold(true).
+		Foreground(styles.ColorText)
 
 	listSelectedNameStyle = lipgloss.NewStyle().
-				Bold(true).
-				Foreground(lipgloss.Color("#7aa2f7"))
+		Bold(true).
+		Foreground(styles.ColorAccent)
 
 	listSelectedCmdStyle = lipgloss.NewStyle().
-				Bold(true).
-				Foreground(lipgloss.Color("#9ece6a"))
+		Bold(true).
+		Foreground(styles.ColorGreen)
 
 	listNormalNameStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#a9b1d6"))
+		Foreground(styles.ColorTextAlt)
 
 	listNormalCmdStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#565f89"))
+		Foreground(styles.ColorTextDim)
 
 	listDimStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#414868"))
+		Foreground(styles.ColorTextDimmer)
 
 	listFooterStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#565f89"))
+		Foreground(styles.ColorTextDim)
 
 	listCursorStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("#7aa2f7"))
-)
+		Bold(true).
+		Foreground(styles.ColorAccent)
+}
 
 // ============================================================
 // Bubbletea モデル
@@ -200,6 +215,8 @@ func runList(cobraCmd *cobra.Command, args []string) error {
 		fmt.Print(shellInitBash)
 		return nil
 	}
+
+	initListStyles()
 
 	repo, err := repository.NewCommandRepository()
 	if err != nil {

@@ -3,7 +3,6 @@ package components
 import (
 	"fmt"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/yamato3010/cmd-launch-pad/internal/i18n"
 	"github.com/yamato3010/cmd-launch-pad/internal/models"
 	"github.com/yamato3010/cmd-launch-pad/internal/tui/styles"
@@ -35,11 +34,11 @@ func RenderAddCard(focused bool) string {
 	)
 	if focused {
 		return styles.CardFocused.Copy().
-			BorderForeground(lipgloss.Color("#9ece6a")).
+			BorderForeground(styles.ColorGreen).
 			Render(content)
 	}
 	return styles.CardNormal.Copy().
-		BorderForeground(lipgloss.Color("#3b4261")).
+		BorderForeground(styles.ColorBorder).
 		Render(content)
 }
 

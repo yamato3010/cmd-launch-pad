@@ -96,6 +96,16 @@ clp export > my-commands.yaml
 clp export --output my-commands.yaml
 ```
 
+### 配色をターミナルに合わせる
+
+`~/.config/cmd-launch-pad/config.yaml` の `theme` に `ansi` を指定すると、固定配色ではなく
+ターミナル側の ANSI カラースキーム (および背景色) に従って描画します。
+
+```yaml
+theme: ansi   # ターミナルの配色に従う
+# theme: dark # 固定配色 (Tokyo Night 風、デフォルト)
+```
+
 ## キーバインド
 
 | キー | アクション |
